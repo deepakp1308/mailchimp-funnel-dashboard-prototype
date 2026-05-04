@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mailchimp.com Acquisition Funnel</title>
+<meta name="description" content="Static acquisition funnel dashboard for Mailchimp.com with year-over-year comparison and multi-select filters." />
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23FFE01B'/><text x='50' y='66' font-size='60' text-anchor='middle' font-family='Georgia' fill='%23241C15'>m</text></svg>" />
+<style>
+  :root {
+    --mc-yellow: #FFE01B;
+    --mc-yellow-dim: #FFF1A8;
+    --mc-pep: #241C15;
+    --mc-pep-soft: #3A2E22;
+    --mc-pep-muted: #5C4F45;
+    --mc-pep-light: #8B7E72;
+    --mc-teal: #007C89;
+    --mc-teal-hover: #006670;
+    --mc-teal-soft: #E6F1F3;
+    --mc-off: #F6F6EE;
+    --mc-bg: #FFFFFF;
+    --mc-border: #E3E1D4;
+    --mc-border-soft: #EFEDE3;
+    --mc-prior: #BFAE9B;
+    --mc-green: #2E7D5B;
+    --mc-red: #B8413A;
+    --mc-shadow-sm: 0 1px 3px rgba(36,28,21,0.06);
+    --mc-shadow-md: 0 6px 20px rgba(36,28,21,0.08);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, 'Inter', Arial, sans-serif;
+    color: var(--mc-pep);
+    line-height: 1.5;
+    background: var(--mc-off);
+    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
+  }
+  h1, h2, h3, .serif {
+    font-family: 'Cooper Light', 'Cooper Lt BT', 'Georgia', serif;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+  }
+  button { font-family: inherit; color: inherit; }
+  a { color: var(--mc-teal); }
+  a:hover { color: var(--mc-teal-hover); }
+
+  :focus-visible {
+    outline: 3px solid var(--mc-teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* =============== Top bar =============== */
+  header.topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--mc-bg);
+    border-bottom: 1px solid var(--mc-border);
+  }
+  .topbar-inner {
+    max-width: 1480px; margin: 0 auto;
+    display: flex; align-items: center;
+    padding: 14px 28px;
+    gap: 22px;
+  }
+  .wordmark { height: 34px; width: auto; display: block; flex-shrink: 0; }
+  .title-block { flex: 1; min-width: 0; }
+  .title-block h1 {
+    font-size: 22px;
+    line-height: 1.1;
+    font-style: italic;
+  }
+  .title-block .sub {
+    font-size: 12px;
+    color: var(--mc-pep-muted);
+    letter-spacing: 0.02em;
+    margin-top: 2px;
+  }
+  .asof {
+    font-size: 12px;
+    color: var(--mc-pep-muted);
+    border-left: 1px solid var(--mc-border);
+    padding-left: 18px;
+    white-space: nowrap;
+  }
+  .asof strong {
+    display: block;
+    font-size: 14px;
+    color: var(--mc-pep);
+    font-weight: 600;
+  }
+
+  /* =============== Layout =============== */
+  .app {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 24px 28px 64px;
+  }
+  @media (min-width: 1100px) {
+    .app {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 28px;
+    }
+  }
+
+  /* =============== Filter rail =============== */
+  aside.filters {
+    background: var(--mc-bg);
+    border: 1px solid var(--mc-border);
+    border-radius: var(--radius-lg);
+    padding: 18px 18px 22px;
+    box-shadow: var(--mc-shadow-sm);
+  }
+  @media (min-width: 1100px) {
+    aside.filters {
+      position: sticky;
+      top: 72px;
+      max-height: calc(100vh - 96px);
+      overflow-y: auto;
+      align-self: start;
+    }
+  }
+  @media (max-width: 1099px) {
+    aside.filters { margin-bottom: 24px; }
+  }
+  .filters h2 {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--mc-pep-muted);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .filter-group { margin-bottom: 20px; }
+  .filter-group:last-of-type { margin-bottom: 8px; }
+
+  .date-toggle {
+    display: flex;
+    background: var(--mc-off);
+    border: 1px solid var(--mc-border);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .date-toggle button {
+    flex: 1;
+    padding: 7px 10px;
+    border: 0;
+    background: transparent;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--mc-pep-muted);
+    transition: background 0.15s, color 0.15s;
+  }
+  .date-toggle button.active {
+    background: var(--mc-pep);
+    color: #fff;
+  }
+
+  .chips {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .chip {
+    background: var(--mc-off);
+    border: 1px solid var(--mc-border);
+    color: var(--mc-pep);
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    line-height: 1.3;
+  }
+  .chip:hover { background: #EFECE0; }
+  .chip[aria-pressed="true"] {
+    background: var(--mc-yellow);
+    border-color: var(--mc-pep);
+    color: var(--mc-pep);
+    font-weight: 600;
+  }
+  .filter-actions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .filter-actions .count {
+    font-size: 12px;
+    color: var(--mc-pep-muted);
+  }
+  .reset-btn {
+    background: transparent;
+    border: 0;
+    color: var(--mc-teal);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 4px 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* =============== Main content =============== */
+  main.content { min-width: 0; }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--mc-bg);
+    border: 1px solid var(--mc-border);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    box-shadow: var(--mc-shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--mc-yellow);
+  }
+  .kpi-card.teal::before { background: var(--mc-teal); }
+  .kpi-card.pep::before { background: var(--mc-pep); }
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--mc-pep-muted);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-family: 'Cooper Light', 'Cooper Lt BT', 'Georgia', serif;
+    font-size: 44px;
+    line-height: 1.05;
+    color: var(--mc-pep);
+    letter-spacing: -0.02em;
+  }
+  .kpi-compare {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+  .delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+  }
+  .delta.up { background: #E6F1EB; color: var(--mc-green); }
+  .delta.down { background: #F8E7E5; color: var(--mc-red); }
+  .delta.flat { background: var(--mc-off); color: var(--mc-pep-muted); }
+  .delta .arrow { font-size: 11px; }
+  .kpi-prior {
+    color: var(--mc-pep-muted);
+    font-size: 12px;
+  }
+  .kpi-prior strong { color: var(--mc-pep); font-weight: 600; }
+
+  /* =============== Panels =============== */
+  .panel {
+    background: var(--mc-bg);
+    border: 1px solid var(--mc-border);
+    border-radius: var(--radius-lg);
+    padding: 24px 26px;
+    margin-bottom: 24px;
+    box-shadow: var(--mc-shadow-sm);
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 18px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .panel-head h2 {
+    font-size: 24px;
+    line-height: 1.15;
+    font-style: italic;
+  }
+  .panel-head .desc {
+    font-size: 13px;
+    color: var(--mc-pep-muted);
+    margin-top: 4px;
+  }
+  .legend {
+    display: inline-flex;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--mc-pep-muted);
+    align-items: center;
+  }
+  .legend-swatch {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: -1px;
+  }
+
+  /* =============== Funnel SVG =============== */
+  .funnel-wrap { position: relative; }
+  .funnel-svg { width: 100%; height: auto; display: block; }
+  .funnel-tooltip {
+    position: absolute;
+    background: var(--mc-pep);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    pointer-events: none;
+    box-shadow: var(--mc-shadow-md);
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+    min-width: 180px;
+    line-height: 1.5;
+  }
+  .funnel-tooltip strong { color: var(--mc-yellow); }
+  .funnel-tooltip .t-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+  }
+  .funnel-tooltip .t-sub { color: rgba(255,255,255,0.7); font-size: 11px; }
+
+  /* =============== YoY small multiples =============== */
+  .yoy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .yoy-card {
+    background: var(--mc-off);
+    border: 1px solid var(--mc-border-soft);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+  }
+  .yoy-card .stage-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mc-pep-muted);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .yoy-card .values {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .yoy-card .cur {
+    font-family: 'Cooper Light', 'Cooper Lt BT', 'Georgia', serif;
+    font-size: 24px;
+    color: var(--mc-pep);
+  }
+  .yoy-card .vs {
+    font-size: 12px;
+    color: var(--mc-pep-muted);
+  }
+  .yoy-card .pri { font-size: 13px; color: var(--mc-pep-muted); }
+  .yoy-bars {
+    display: flex; flex-direction: column; gap: 4px; margin-top: 8px;
+  }
+  .yoy-bar-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px;
+    color: var(--mc-pep-muted);
+  }
+  .yoy-bar-row .name { width: 40px; flex-shrink: 0; font-weight: 600; }
+  .yoy-bar-row .track {
+    flex: 1; height: 10px;
+    background: var(--mc-border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .yoy-bar-row .fill {
+    height: 100%;
+    border-radius: 999px;
+  }
+  .yoy-bar-row.current .fill { background: var(--mc-teal); }
+  .yoy-bar-row.prior .fill { background: var(--mc-prior); }
+
+  /* =============== Trend chart =============== */
+  .trend-tabs {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .tab-chip {
+    background: var(--mc-off);
+    border: 1px solid var(--mc-border);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--mc-pep);
+  }
+  .tab-chip[aria-pressed="true"] {
+    background: var(--mc-pep);
+    border-color: var(--mc-pep);
+    color: #fff;
+    font-weight: 600;
+  }
+  .trend-wrap { position: relative; }
+  .trend-svg { width: 100%; height: auto; display: block; }
+
+  /* =============== Mini-tables =============== */
+  .table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  table.mini {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.mini th, table.mini td {
+    padding: 9px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--mc-border-soft);
+  }
+  table.mini th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--mc-pep-muted);
+    font-weight: 700;
+    border-bottom: 1px solid var(--mc-border);
+    white-space: nowrap;
+  }
+  table.mini td.num, table.mini th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.mini tr:last-child td { border-bottom: 0; }
+  table.mini .name { font-weight: 500; }
+  table.mini .rate { color: var(--mc-pep-muted); font-size: 12px; }
+
+  /* =============== Footer =============== */
+  footer.site {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 32px 28px 48px;
+    color: var(--mc-pep-muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  footer.site code {
+    background: var(--mc-off);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+  }
+
+  /* Loading / error */
+  .state-msg {
+    padding: 60px 30px;
+    text-align: center;
+    color: var(--mc-pep-muted);
+    font-size: 14px;
+  }
+  .state-msg.error { color: var(--mc-red); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar-inner { padding: 12px 16px; gap: 12px; }
+    .wordmark { height: 28px; }
+    .title-block h1 { font-size: 17px; }
+    .asof { padding-left: 10px; font-size: 11px; }
+    .app { padding: 16px 14px 48px; }
+    .panel { padding: 18px 16px; }
+    .panel-head h2 { font-size: 20px; }
+    .kpi-value { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar" role="banner">
+  <div class="topbar-inner">
+    <img src="./assets/mailchimp.svg" alt="Mailchimp" class="wordmark" />
+    <div class="title-block">
+      <h1>Mailchimp.com Acquisition Funnel</h1>
+      <div class="sub">Visitor to purchase, seven stages, current period vs prior year</div>
+    </div>
+    <div class="asof" aria-live="polite">
+      <span>as of</span>
+      <strong id="asof-date">loading</strong>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+
+  <aside class="filters" aria-label="Dashboard filters">
+    <div class="filter-group">
+      <h2>Window</h2>
+      <div class="date-toggle" role="radiogroup" aria-label="Date range">
+        <button type="button" data-range="30" class="active" aria-pressed="true">Last 30 days</button>
+        <button type="button" data-range="90" aria-pressed="false">Last 90 days</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h2>Landing family</h2>
+      <div class="chips" id="chips-lf" role="group" aria-label="Landing family filter"></div>
+    </div>
+
+    <div class="filter-group">
+      <h2>Channel</h2>
+      <div class="chips" id="chips-ch" role="group" aria-label="Channel filter"></div>
+    </div>
+
+    <div class="filter-group">
+      <h2>Country</h2>
+      <div class="chips" id="chips-co" role="group" aria-label="Country filter"></div>
+    </div>
+
+    <div class="filter-group">
+      <h2>Device</h2>
+      <div class="chips" id="chips-dv" role="group" aria-label="Device filter"></div>
+    </div>
+
+    <div class="filter-group">
+      <h2>Visitor type</h2>
+      <div class="chips" id="chips-nr" role="group" aria-label="Visitor type filter"></div>
+    </div>
+
+    <div class="filter-actions">
+      <span class="count" id="row-count"></span>
+      <button type="button" class="reset-btn" id="reset-btn">Reset filters</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div id="loading" class="state-msg">Loading funnel cube</div>
+    <div id="app-body" style="display:none;">
+
+      <section class="kpi-grid" aria-label="Headline KPIs" aria-live="polite">
+        <div class="kpi-card">
+          <div class="kpi-label">Visitors</div>
+          <div class="kpi-value" id="kpi-s1">--</div>
+          <div class="kpi-compare">
+            <span class="delta" id="kpi-s1-delta">--</span>
+            <span class="kpi-prior">vs <strong id="kpi-s1-prior">--</strong> prior year</span>
+          </div>
+        </div>
+        <div class="kpi-card teal">
+          <div class="kpi-label">Submitted signups</div>
+          <div class="kpi-value" id="kpi-s4">--</div>
+          <div class="kpi-compare">
+            <span class="delta" id="kpi-s4-delta">--</span>
+            <span class="kpi-prior">vs <strong id="kpi-s4-prior">--</strong> prior year</span>
+          </div>
+        </div>
+        <div class="kpi-card pep">
+          <div class="kpi-label">Purchases</div>
+          <div class="kpi-value" id="kpi-s7">--</div>
+          <div class="kpi-compare">
+            <span class="delta" id="kpi-s7-delta">--</span>
+            <span class="kpi-prior">vs <strong id="kpi-s7-prior">--</strong> prior year</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Sequenced funnel</h2>
+            <div class="desc">Each stage is a subset of the prior step, based on ordered timestamps per visitor.</div>
+          </div>
+          <div class="legend">
+            <span><span class="legend-swatch" style="background:var(--mc-teal)"></span>Current period</span>
+            <span><span class="legend-swatch" style="background:var(--mc-prior)"></span>Prior year</span>
+          </div>
+        </div>
+        <div class="funnel-wrap">
+          <svg class="funnel-svg" id="funnel-svg" viewBox="0 0 880 440" preserveAspectRatio="xMinYMin meet" aria-label="Funnel chart"></svg>
+          <div class="funnel-tooltip" id="funnel-tooltip"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Year-over-year by stage</h2>
+            <div class="desc">Current period total against the matched window 365 days earlier.</div>
+          </div>
+        </div>
+        <div class="yoy-grid" id="yoy-grid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>13-week trend</h2>
+            <div class="desc">Total visitors at the selected stage across the last 13 ISO weeks, unfiltered baseline.</div>
+          </div>
+          <div class="trend-tabs" id="trend-tabs" role="tablist" aria-label="Trend stage selector"></div>
+        </div>
+        <div class="trend-wrap">
+          <svg class="trend-svg" id="trend-svg" viewBox="0 0 880 300" preserveAspectRatio="xMinYMin meet" aria-label="Weekly trend chart"></svg>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2>Top slices</h2>
+            <div class="desc">Sorted by purchases for the current period after filters apply.</div>
+          </div>
+        </div>
+        <div class="table-grid">
+          <div>
+            <h3 class="kpi-label" style="margin-bottom:10px;">Top channels</h3>
+            <table class="mini" id="table-channels" aria-label="Top channels">
+              <thead>
+                <tr>
+                  <th>Channel</th>
+                  <th class="num">Visitors</th>
+                  <th class="num">Signups</th>
+                  <th class="num">Purchases</th>
+                  <th class="num">Conv.</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div>
+            <h3 class="kpi-label" style="margin-bottom:10px;">Top landing families</h3>
+            <table class="mini" id="table-landing" aria-label="Top landing families">
+              <thead>
+                <tr>
+                  <th>Landing family</th>
+                  <th class="num">Visitors</th>
+                  <th class="num">Signups</th>
+                  <th class="num">Purchases</th>
+                  <th class="num">Conv.</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<footer class="site">
+  Built from <code>mc-business-intelligence.google_analytics.fct_ga4_visitor_session_events_daily</code>, filtered to <code>mailchimp.com</code> hostname.
+  Funnel stages are sequenced per visitor on event timestamps. Rows with fewer than five visitors at stage one are suppressed in the cube.
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const STAGES = ["s1","s2","s3","s4","s5","s6","s7"];
+  const STAGE_LABELS = {
+    s1: "Visitors",
+    s2: "Viewed pricing",
+    s3: "Started signup",
+    s4: "Submitted signup",
+    s5: "Began checkout",
+    s6: "Added payment",
+    s7: "Purchased"
+  };
+
+  // Canonical option sets
+  const LANDING_FAMILIES = [
+    "Homepage", "Pricing", "Reporting & Analytics",
+    "Email Marketing solution", "SMS Marketing solution", "Marketing Automation solution",
+    "Other Solutions", "Other Feature pages", "SEO Resources",
+    "Knowledge Base / Help", "Integrations", "Switch-to / Compete",
+    "Direct to Signup", "Other"
+  ];
+  const CHANNELS = [
+    "Direct", "Paid Search", "Paid Social", "Organic Search",
+    "Organic Social", "Email", "Affiliate", "Referral", "Display / Other"
+  ];
+  const DEVICES = ["mobile", "desktop", "tablet"];
+  const VISITOR_TYPES = ["new", "returning"];
+
+  // State
+  const state = {
+    range: 30,
+    lf: new Set(),
+    ch: new Set(),
+    co: new Set(),
+    dv: new Set(),
+    nr: new Set(),
+    trendStage: "s1"
+  };
+
+  let CUBE = null;
+  let TREND = null;
+  let COUNTRIES = [];
+
+  // ----- Helpers -----
+  function humanize(n) {
+    if (n === null || n === undefined || Number.isNaN(n)) return "--";
+    const abs = Math.abs(n);
+    if (abs >= 1e9) return (n / 1e9).toFixed(abs >= 1e10 ? 1 : 2).replace(/\.?0+$/,"") + "B";
+    if (abs >= 1e6) return (n / 1e6).toFixed(abs >= 1e7 ? 1 : 2).replace(/\.?0+$/,"") + "M";
+    if (abs >= 1e3) return (n / 1e3).toFixed(abs >= 1e4 ? 0 : 1).replace(/\.?0+$/,"") + "K";
+    return String(Math.round(n));
+  }
+  function fullNum(n) {
+    if (n === null || n === undefined) return "--";
+    return n.toLocaleString("en-US");
+  }
+  function pct(x, total) {
+    if (!total) return "--";
+    return (x / total * 100).toFixed(x / total < 0.01 ? 2 : 1) + "%";
+  }
+  function yoyDelta(cur, prior) {
+    if (!prior) return { text: "n/a", cls: "flat", value: 0 };
+    const d = (cur - prior) / prior * 100;
+    const abs = Math.abs(d);
+    const cls = abs < 1 ? "flat" : (d > 0 ? "up" : "down");
+    const arrow = cls === "up" ? "\u2191" : cls === "down" ? "\u2193" : "=";
+    const sign = d > 0 ? "+" : "";
+    return { text: `${arrow} ${sign}${d.toFixed(1)}%`, cls, value: d };
+  }
+
+  // ----- Data loading -----
+  async function loadData() {
+    try {
+      const [cubeRes, trendRes] = await Promise.all([
+        fetch("./data/funnel-cube.json", { cache: "no-store" }),
+        fetch("./data/weekly-trend.json", { cache: "no-store" })
+      ]);
+      if (!cubeRes.ok) throw new Error("Failed to load cube: " + cubeRes.status);
+      if (!trendRes.ok) throw new Error("Failed to load trend: " + trendRes.status);
+      CUBE = await cubeRes.json();
+      TREND = await trendRes.json();
+
+      // derive country list: top 20 by current_30d s1 plus "Other"
+      const coTotals = {};
+      CUBE.rows.forEach(r => {
+        if (r.period !== "current_30d") return;
+        coTotals[r.country] = (coTotals[r.country] || 0) + r.s1;
+      });
+      const sorted = Object.keys(coTotals).sort((a,b) => coTotals[b] - coTotals[a]);
+      const named = sorted.filter(c => c !== "Other").slice(0, 20);
+      COUNTRIES = [...named];
+      if (sorted.includes("Other")) COUNTRIES.push("Other");
+
+      return true;
+    } catch (e) {
+      console.error(e);
+      document.getElementById("loading").textContent = "Could not load data: " + e.message;
+      document.getElementById("loading").classList.add("error");
+      return false;
+    }
+  }
+
+  // ----- Chip rendering -----
+  function renderChips(containerId, options, stateKey) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = "";
+    options.forEach(opt => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "chip";
+      b.textContent = opt;
+      b.setAttribute("aria-pressed", state[stateKey].has(opt) ? "true" : "false");
+      b.setAttribute("aria-label", `${stateKey} filter: ${opt}`);
+      b.addEventListener("click", () => {
+        if (state[stateKey].has(opt)) state[stateKey].delete(opt);
+        else state[stateKey].add(opt);
+        b.setAttribute("aria-pressed", state[stateKey].has(opt) ? "true" : "false");
+        syncHash();
+        render();
+      });
+      el.appendChild(b);
+    });
+  }
+
+  function initFilters() {
+    renderChips("chips-lf", LANDING_FAMILIES, "lf");
+    renderChips("chips-ch", CHANNELS, "ch");
+    renderChips("chips-co", COUNTRIES, "co");
+    renderChips("chips-dv", DEVICES, "dv");
+    renderChips("chips-nr", VISITOR_TYPES, "nr");
+
+    document.querySelectorAll(".date-toggle button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.range = parseInt(btn.getAttribute("data-range"), 10);
+        document.querySelectorAll(".date-toggle button").forEach(b2 => {
+          const on = parseInt(b2.getAttribute("data-range"),10) === state.range;
+          b2.classList.toggle("active", on);
+          b2.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        syncHash();
+        render();
+      });
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      state.lf.clear();
+      state.ch.clear();
+      state.co.clear();
+      state.dv.clear();
+      state.nr.clear();
+      state.range = 30;
+      document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed","false"));
+      document.querySelectorAll(".date-toggle button").forEach(b2 => {
+        const on = parseInt(b2.getAttribute("data-range"),10) === 30;
+        b2.classList.toggle("active", on);
+        b2.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      syncHash();
+      render();
+    });
+
+    initTrendTabs();
+  }
+
+  function initTrendTabs() {
+    const el = document.getElementById("trend-tabs");
+    el.innerHTML = "";
+    STAGES.forEach(s => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "tab-chip";
+      b.textContent = STAGE_LABELS[s];
+      b.setAttribute("role","tab");
+      b.setAttribute("aria-pressed", state.trendStage === s ? "true" : "false");
+      b.addEventListener("click", () => {
+        state.trendStage = s;
+        document.querySelectorAll("#trend-tabs .tab-chip").forEach(x => x.setAttribute("aria-pressed","false"));
+        b.setAttribute("aria-pressed","true");
+        renderTrend();
+      });
+      el.appendChild(b);
+    });
+  }
+
+  // ----- URL hash sync -----
+  function syncHash() {
+    const parts = [];
+    parts.push("d=" + state.range);
+    if (state.lf.size) parts.push("lf=" + [...state.lf].map(encodeURIComponent).join(","));
+    if (state.ch.size) parts.push("ch=" + [...state.ch].map(encodeURIComponent).join(","));
+    if (state.co.size) parts.push("co=" + [...state.co].map(encodeURIComponent).join(","));
+    if (state.dv.size) parts.push("dv=" + [...state.dv].map(encodeURIComponent).join(","));
+    if (state.nr.size) parts.push("nr=" + [...state.nr].map(encodeURIComponent).join(","));
+    const h = parts.join("&");
+    if (h !== location.hash.replace(/^#/, "")) {
+      history.replaceState(null, "", "#" + h);
+    }
+  }
+  function loadHash() {
+    const raw = location.hash.replace(/^#/, "");
+    if (!raw) return;
+    raw.split("&").forEach(part => {
+      const [k, v] = part.split("=");
+      if (!k || v === undefined) return;
+      const vals = v.split(",").map(decodeURIComponent).filter(Boolean);
+      if (k === "d") {
+        const n = parseInt(v, 10);
+        if (n === 30 || n === 90) state.range = n;
+      } else if (k === "lf") state.lf = new Set(vals);
+      else if (k === "ch") state.ch = new Set(vals);
+      else if (k === "co") state.co = new Set(vals);
+      else if (k === "dv") state.dv = new Set(vals);
+      else if (k === "nr") state.nr = new Set(vals);
+    });
+  }
+
+  // ----- Core aggregation -----
+  function matchesFilters(row, period) {
+    if (row.period !== period) return false;
+    if (state.lf.size && !state.lf.has(row.landing_family)) return false;
+    if (state.ch.size && !state.ch.has(row.channel)) return false;
+    if (state.co.size && !state.co.has(row.country)) return false;
+    if (state.dv.size && !state.dv.has(row.device)) return false;
+    if (state.nr.size && !state.nr.has(row.new_returning)) return false;
+    return true;
+  }
+  function aggregate(period) {
+    const t = { rows: 0, s1:0, s2:0, s3:0, s4:0, s5:0, s6:0, s7:0 };
+    CUBE.rows.forEach(r => {
+      if (!matchesFilters(r, period)) return;
+      t.rows++;
+      for (let i = 0; i < STAGES.length; i++) t[STAGES[i]] += r[STAGES[i]];
+    });
+    return t;
+  }
+  function aggregateBy(period, dim, topN) {
+    const map = {};
+    CUBE.rows.forEach(r => {
+      if (!matchesFilters(r, period)) return;
+      const key = r[dim];
+      if (!map[key]) map[key] = { name: key, s1:0, s4:0, s7:0 };
+      map[key].s1 += r.s1;
+      map[key].s4 += r.s4;
+      map[key].s7 += r.s7;
+    });
+    return Object.values(map).sort((a,b) => b.s7 - a.s7 || b.s4 - a.s4 || b.s1 - a.s1).slice(0, topN);
+  }
+
+  function periodKey(which) {
+    if (which === "current") return state.range === 30 ? "current_30d" : "current_90d";
+    return state.range === 30 ? "prior_yr_30d" : "prior_yr_90d";
+  }
+
+  // ----- Render: KPIs -----
+  function renderKpis(cur, pri) {
+    const set = (id, val) => document.getElementById(id).textContent = val;
+    set("kpi-s1", humanize(cur.s1));
+    set("kpi-s4", humanize(cur.s4));
+    set("kpi-s7", humanize(cur.s7));
+    set("kpi-s1-prior", humanize(pri.s1));
+    set("kpi-s4-prior", humanize(pri.s4));
+    set("kpi-s7-prior", humanize(pri.s7));
+    ["s1","s4","s7"].forEach(s => {
+      const d = yoyDelta(cur[s], pri[s]);
+      const el = document.getElementById("kpi-" + s + "-delta");
+      el.textContent = d.text;
+      el.className = "delta " + d.cls;
+    });
+  }
+
+  // ----- Render: Funnel SVG -----
+  function renderFunnel(cur, pri) {
+    const svg = document.getElementById("funnel-svg");
+    svg.innerHTML = "";
+
+    const W = 880, H = 440;
+    const PAD_L = 170, PAD_R = 120, PAD_T = 16, PAD_B = 16;
+    const barArea = W - PAD_L - PAD_R;
+    const barH = 42;
+    const gap = 12;
+
+    const maxVal = Math.max(cur.s1 || 1, pri.s1 || 1);
+    const tealColor = "#007C89";
+    const priorColor = "#BFAE9B";
+
+    for (let i = 0; i < STAGES.length; i++) {
+      const s = STAGES[i];
+      const y = PAD_T + i * (barH + gap);
+      const curW = Math.max(2, (cur[s] || 0) / maxVal * barArea);
+      const priW = Math.max(0, (pri[s] || 0) / maxVal * barArea);
+
+      // label
+      const lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
+      lbl.setAttribute("x", PAD_L - 14);
+      lbl.setAttribute("y", y + barH / 2 + 4);
+      lbl.setAttribute("text-anchor", "end");
+      lbl.setAttribute("font-size", "13");
+      lbl.setAttribute("font-weight", "600");
+      lbl.setAttribute("fill", "#241C15");
+      lbl.textContent = (i+1) + ". " + STAGE_LABELS[s];
+      svg.appendChild(lbl);
+
+      // prior-year bar underlay
+      if (priW > 0) {
+        const priRect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+        priRect.setAttribute("x", PAD_L);
+        priRect.setAttribute("y", y + 4);
+        priRect.setAttribute("width", priW);
+        priRect.setAttribute("height", barH - 8);
+        priRect.setAttribute("rx", "4");
+        priRect.setAttribute("fill", priorColor);
+        priRect.setAttribute("opacity", "0.55");
+        svg.appendChild(priRect);
+      }
+      // current bar
+      const curRect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      curRect.setAttribute("x", PAD_L);
+      curRect.setAttribute("y", y);
+      curRect.setAttribute("width", curW);
+      curRect.setAttribute("height", barH);
+      curRect.setAttribute("rx", "4");
+      curRect.setAttribute("fill", tealColor);
+      curRect.setAttribute("data-stage", s);
+      curRect.style.cursor = "pointer";
+      svg.appendChild(curRect);
+
+      // value label on/after bar
+      const valT = document.createElementNS("http://www.w3.org/2000/svg","text");
+      const valX = PAD_L + curW + 8;
+      valT.setAttribute("x", valX);
+      valT.setAttribute("y", y + barH / 2 + 4);
+      valT.setAttribute("font-size", "13");
+      valT.setAttribute("font-weight", "700");
+      valT.setAttribute("fill", "#241C15");
+      valT.textContent = humanize(cur[s]);
+      svg.appendChild(valT);
+
+      // conversion rate annotation between stages
+      if (i > 0) {
+        const prevS = STAGES[i-1];
+        const prevVal = cur[prevS];
+        const rate = prevVal ? ((cur[s] / prevVal) * 100) : 0;
+        const rateText = document.createElementNS("http://www.w3.org/2000/svg","text");
+        rateText.setAttribute("x", PAD_L - 14);
+        rateText.setAttribute("y", y - gap/2 + 4);
+        rateText.setAttribute("text-anchor", "end");
+        rateText.setAttribute("font-size", "10");
+        rateText.setAttribute("fill", "#8B7E72");
+        rateText.textContent = "step: " + rate.toFixed(rate < 1 ? 2 : 1) + "%";
+        svg.appendChild(rateText);
+
+        const toFirst = cur.s1 ? (cur[s] / cur.s1 * 100) : 0;
+        const toFirstText = document.createElementNS("http://www.w3.org/2000/svg","text");
+        toFirstText.setAttribute("x", W - PAD_R + 12);
+        toFirstText.setAttribute("y", y + barH / 2 + 4);
+        toFirstText.setAttribute("font-size", "11");
+        toFirstText.setAttribute("fill", "#5C4F45");
+        toFirstText.textContent = "of visitors: " + toFirst.toFixed(toFirst < 1 ? 2 : 1) + "%";
+        svg.appendChild(toFirstText);
+      } else {
+        const baseText = document.createElementNS("http://www.w3.org/2000/svg","text");
+        baseText.setAttribute("x", W - PAD_R + 12);
+        baseText.setAttribute("y", y + barH / 2 + 4);
+        baseText.setAttribute("font-size", "11");
+        baseText.setAttribute("fill", "#5C4F45");
+        baseText.textContent = "baseline";
+        svg.appendChild(baseText);
+      }
+    }
+
+    // tooltip bindings
+    const tip = document.getElementById("funnel-tooltip");
+    const wrap = svg.parentElement;
+    const rects = svg.querySelectorAll("rect[data-stage]");
+    rects.forEach(rect => {
+      rect.addEventListener("mousemove", (evt) => {
+        const s = rect.getAttribute("data-stage");
+        const idx = STAGES.indexOf(s);
+        const prevS = idx > 0 ? STAGES[idx-1] : null;
+        const stepRate = prevS && cur[prevS] ? (cur[s] / cur[prevS] * 100) : null;
+        const totalRate = cur.s1 ? (cur[s] / cur.s1 * 100) : null;
+        const yoy = yoyDelta(cur[s], pri[s]);
+        tip.innerHTML = `
+          <div style="font-weight:700;margin-bottom:4px;">${idx+1}. ${STAGE_LABELS[s]}</div>
+          <div class="t-row"><span>Current</span><strong>${fullNum(cur[s])}</strong></div>
+          <div class="t-row"><span>Prior year</span><span>${fullNum(pri[s])}</span></div>
+          <div class="t-row"><span>YoY</span><span class="t-sub">${yoy.text}</span></div>
+          ${stepRate !== null ? `<div class="t-row"><span>Step conv.</span><span class="t-sub">${stepRate.toFixed(stepRate < 1 ? 2 : 1)}%</span></div>` : ""}
+          ${totalRate !== null ? `<div class="t-row"><span>From visitors</span><span class="t-sub">${totalRate.toFixed(totalRate < 1 ? 2 : 1)}%</span></div>` : ""}
+        `;
+        const wrapRect = wrap.getBoundingClientRect();
+        const x = evt.clientX - wrapRect.left + 14;
+        const y = evt.clientY - wrapRect.top + 14;
+        tip.style.left = x + "px";
+        tip.style.top = y + "px";
+        tip.style.opacity = "1";
+      });
+      rect.addEventListener("mouseleave", () => { tip.style.opacity = "0"; });
+    });
+  }
+
+  // ----- Render: YoY panel -----
+  function renderYoy(cur, pri) {
+    const grid = document.getElementById("yoy-grid");
+    grid.innerHTML = "";
+    const maxVal = Math.max(cur.s1 || 1, pri.s1 || 1);
+    STAGES.forEach((s, idx) => {
+      const d = yoyDelta(cur[s], pri[s]);
+      const curPct = (cur[s] / maxVal) * 100;
+      const priPct = (pri[s] / maxVal) * 100;
+      const card = document.createElement("div");
+      card.className = "yoy-card";
+      card.innerHTML = `
+        <div class="stage-label">${idx+1}. ${STAGE_LABELS[s]}</div>
+        <div class="values">
+          <span class="cur">${humanize(cur[s])}</span>
+          <span class="vs">vs <strong>${humanize(pri[s])}</strong></span>
+          <span class="delta ${d.cls}" style="margin-left:auto;">${d.text}</span>
+        </div>
+        <div class="yoy-bars">
+          <div class="yoy-bar-row current"><span class="name">Now</span><span class="track"><span class="fill" style="width:${curPct.toFixed(2)}%"></span></span></div>
+          <div class="yoy-bar-row prior"><span class="name">Prior</span><span class="track"><span class="fill" style="width:${priPct.toFixed(2)}%"></span></span></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // ----- Render: Trend -----
+  function renderTrend() {
+    const svg = document.getElementById("trend-svg");
+    svg.innerHTML = "";
+    const weeks = TREND.weeks;
+    const key = {
+      s1: "s1_visitors", s2: "s2_viewed_pricing", s3: "s3_started_signup",
+      s4: "s4_submitted_signup", s5: "s5_begin_checkout", s6: "s6_added_payment",
+      s7: "s7_purchased"
+    }[state.trendStage];
+    const values = TREND.series[key];
+
+    const W = 880, H = 300;
+    const PAD_L = 56, PAD_R = 24, PAD_T = 20, PAD_B = 42;
+    const plotW = W - PAD_L - PAD_R;
+    const plotH = H - PAD_T - PAD_B;
+    const maxVal = Math.max(...values);
+    const minVal = 0;
+    const stepX = plotW / (values.length - 1);
+
+    // gridlines + y labels (4 ticks)
+    const ticks = 4;
+    for (let t = 0; t <= ticks; t++) {
+      const val = maxVal * t / ticks;
+      const y = PAD_T + plotH - (val / maxVal) * plotH;
+      const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+      line.setAttribute("x1", PAD_L);
+      line.setAttribute("x2", W - PAD_R);
+      line.setAttribute("y1", y);
+      line.setAttribute("y2", y);
+      line.setAttribute("stroke", "#EFEDE3");
+      line.setAttribute("stroke-width","1");
+      svg.appendChild(line);
+      const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
+      txt.setAttribute("x", PAD_L - 8);
+      txt.setAttribute("y", y + 4);
+      txt.setAttribute("text-anchor","end");
+      txt.setAttribute("font-size","10");
+      txt.setAttribute("fill","#8B7E72");
+      txt.textContent = humanize(val);
+      svg.appendChild(txt);
+    }
+
+    // Build line path
+    let d = "";
+    values.forEach((v, i) => {
+      const x = PAD_L + i * stepX;
+      const y = PAD_T + plotH - (v / maxVal) * plotH;
+      d += (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1);
+    });
+
+    // area fill under line
+    const areaD = d + " L " + (PAD_L + (values.length - 1) * stepX).toFixed(1) + "," + (PAD_T + plotH) + " L " + PAD_L + "," + (PAD_T + plotH) + " Z";
+    const area = document.createElementNS("http://www.w3.org/2000/svg","path");
+    area.setAttribute("d", areaD);
+    area.setAttribute("fill", "#007C89");
+    area.setAttribute("opacity","0.10");
+    svg.appendChild(area);
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill","none");
+    path.setAttribute("stroke","#007C89");
+    path.setAttribute("stroke-width","2.5");
+    path.setAttribute("stroke-linejoin","round");
+    path.setAttribute("stroke-linecap","round");
+    svg.appendChild(path);
+
+    // points + labels
+    values.forEach((v, i) => {
+      const x = PAD_L + i * stepX;
+      const y = PAD_T + plotH - (v / maxVal) * plotH;
+      const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("cx", x);
+      c.setAttribute("cy", y);
+      c.setAttribute("r", "3.5");
+      c.setAttribute("fill","#FFFFFF");
+      c.setAttribute("stroke","#007C89");
+      c.setAttribute("stroke-width","2");
+      svg.appendChild(c);
+      const title = document.createElementNS("http://www.w3.org/2000/svg","title");
+      title.textContent = weeks[i] + ": " + fullNum(v);
+      c.appendChild(title);
+    });
+
+    // x-axis labels (every other week, rotated slightly)
+    values.forEach((v, i) => {
+      if (i % 2 !== 0 && i !== values.length - 1) return;
+      const x = PAD_L + i * stepX;
+      const y = H - PAD_B + 18;
+      const lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
+      lbl.setAttribute("x", x);
+      lbl.setAttribute("y", y);
+      lbl.setAttribute("text-anchor","middle");
+      lbl.setAttribute("font-size","10");
+      lbl.setAttribute("fill","#8B7E72");
+      const parts = weeks[i].split("-");
+      lbl.textContent = parts[1] + "/" + parts[2];
+      svg.appendChild(lbl);
+    });
+
+    // Footer note about scope
+    const foot = document.createElementNS("http://www.w3.org/2000/svg","text");
+    foot.setAttribute("x", PAD_L);
+    foot.setAttribute("y", H - 8);
+    foot.setAttribute("font-size","10");
+    foot.setAttribute("fill","#8B7E72");
+    foot.textContent = "Stage: " + STAGE_LABELS[state.trendStage] + ", unfiltered mailchimp.com baseline";
+    svg.appendChild(foot);
+  }
+
+  // ----- Render: mini tables -----
+  function renderTables(curPeriod) {
+    const channels = aggregateBy(curPeriod, "channel", 10);
+    const landings = aggregateBy(curPeriod, "landing_family", 10);
+    fillTable("table-channels", channels);
+    fillTable("table-landing", landings);
+  }
+  function fillTable(id, rows) {
+    const tbody = document.querySelector("#" + id + " tbody");
+    tbody.innerHTML = "";
+    if (!rows.length) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="5" style="text-align:center;color:var(--mc-pep-muted);padding:22px;">No rows match the current filters</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+    rows.forEach(r => {
+      const convRate = r.s1 ? (r.s7 / r.s1 * 100) : 0;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="name">${escapeHtml(r.name)}</td>
+        <td class="num">${humanize(r.s1)}</td>
+        <td class="num">${humanize(r.s4)}</td>
+        <td class="num">${humanize(r.s7)}</td>
+        <td class="num rate">${convRate ? convRate.toFixed(convRate < 0.1 ? 3 : 2) + "%" : "--"}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+  }
+
+  // ----- Filter count -----
+  function renderRowCount(curTotals) {
+    const el = document.getElementById("row-count");
+    el.textContent = curTotals.rows + " rows in view";
+  }
+
+  // ----- Master render -----
+  function render() {
+    if (!CUBE) return;
+    const curP = periodKey("current");
+    const priP = periodKey("prior");
+    const cur = aggregate(curP);
+    const pri = aggregate(priP);
+    renderKpis(cur, pri);
+    renderFunnel(cur, pri);
+    renderYoy(cur, pri);
+    renderTables(curP);
+    renderRowCount(cur);
+  }
+
+  // ----- Boot -----
+  async function boot() {
+    const ok = await loadData();
+    if (!ok) return;
+
+    document.getElementById("asof-date").textContent = CUBE.as_of || "--";
+
+    loadHash();
+
+    // reflect loaded range
+    document.querySelectorAll(".date-toggle button").forEach(b2 => {
+      const on = parseInt(b2.getAttribute("data-range"),10) === state.range;
+      b2.classList.toggle("active", on);
+      b2.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+
+    initFilters();
+    renderTrend();
+    render();
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("app-body").style.display = "block";
+  }
+
+  window.addEventListener("DOMContentLoaded", boot);
+})();
+</script>
+
+</body>
+</html>
