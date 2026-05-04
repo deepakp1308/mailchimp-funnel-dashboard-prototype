@@ -95,6 +95,37 @@
     font-weight: 600;
   }
 
+  /* =============== Tabs =============== */
+  .tabs {
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    flex-shrink: 0;
+    align-self: stretch;
+    margin-bottom: -1px;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    padding: 0 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--mc-pep-muted);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+  }
+  .tab-btn:hover { color: var(--mc-pep); }
+  .tab-btn[aria-selected="true"] {
+    color: var(--mc-pep);
+    border-bottom-color: var(--mc-pep);
+  }
+
+  [hidden] { display: none !important; }
+
   /* =============== Layout =============== */
   .app {
     max-width: 1480px;
@@ -491,6 +522,223 @@
     font-size: 11px;
   }
 
+  /* =============== Insights tab =============== */
+  .insights-wrap {
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 40px 28px 56px;
+  }
+  .insights-hero {
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--mc-border-soft);
+    margin-bottom: 28px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--mc-teal);
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .insights-h1 {
+    font-size: 42px;
+    line-height: 1.1;
+    font-style: italic;
+    color: var(--mc-pep);
+    margin-bottom: 18px;
+    letter-spacing: -0.01em;
+  }
+  .standfirst {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--mc-pep-muted);
+    max-width: 720px;
+  }
+
+  .tldr-card {
+    background: var(--mc-bg);
+    border: 1px solid var(--mc-border);
+    border-left: 5px solid var(--mc-yellow);
+    border-radius: var(--radius-md);
+    padding: 22px 26px;
+    margin-bottom: 36px;
+    box-shadow: var(--mc-shadow-sm);
+  }
+  .tldr-label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--mc-pep);
+    margin-bottom: 10px;
+  }
+  .tldr-card p {
+    font-size: 15.5px;
+    line-height: 1.7;
+    color: var(--mc-pep);
+  }
+
+  .takeaway {
+    background: var(--mc-bg);
+    border: 1px solid var(--mc-border);
+    border-radius: var(--radius-md);
+    padding: 28px 30px 26px;
+    margin-bottom: 22px;
+    box-shadow: var(--mc-shadow-sm);
+  }
+  .takeaway .badge {
+    display: inline-flex;
+    width: 36px; height: 36px;
+    align-items: center; justify-content: center;
+    background: var(--mc-yellow);
+    color: var(--mc-pep);
+    border-radius: 999px;
+    font-family: 'Cooper Light', 'Cooper Lt BT', 'Georgia', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .takeaway h2 {
+    font-size: 24px;
+    line-height: 1.25;
+    font-style: italic;
+    margin-bottom: 8px;
+    color: var(--mc-pep);
+  }
+  .takeaway h3 {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mc-teal);
+    font-weight: 700;
+    margin: 18px 0 10px;
+  }
+  .takeaway ul {
+    margin: 0 0 4px 22px;
+    padding: 0;
+  }
+  .takeaway ul li {
+    font-size: 14.5px;
+    line-height: 1.65;
+    margin-bottom: 8px;
+    color: var(--mc-pep);
+  }
+  .takeaway ul ul {
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+  .takeaway ul ul li {
+    font-size: 14px;
+    color: var(--mc-pep-muted);
+    margin-bottom: 6px;
+  }
+  .takeaway ol.qual-list {
+    margin: 0 0 4px 22px;
+    padding: 0;
+  }
+  .takeaway ol.qual-list li {
+    font-size: 14.5px;
+    line-height: 1.65;
+    margin-bottom: 8px;
+    color: var(--mc-pep);
+  }
+
+  .fy26-table-wrap {
+    margin-top: 14px;
+    overflow-x: auto;
+  }
+  .fy26-table-title {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mc-pep-muted);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  table.fy26 {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.fy26 th, table.fy26 td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--mc-border-soft);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+  table.fy26 th {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--mc-pep-muted);
+    font-weight: 700;
+    background: var(--mc-off);
+    border-bottom: 1px solid var(--mc-border);
+  }
+  table.fy26 tr:last-child td { border-bottom: 0; }
+
+  .quick-wins {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: var(--mc-off);
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--mc-pep);
+  }
+  .quick-wins strong {
+    color: var(--mc-pep);
+    font-weight: 700;
+  }
+
+  .closing-card {
+    background: var(--mc-pep);
+    color: #fff;
+    border-radius: var(--radius-md);
+    padding: 34px 32px 30px;
+    margin-top: 28px;
+    margin-bottom: 28px;
+  }
+  .closing-card h2 {
+    font-size: 28px;
+    line-height: 1.2;
+    font-style: italic;
+    color: var(--mc-yellow);
+    margin-bottom: 18px;
+  }
+  .closing-card ol {
+    margin: 0 0 0 22px;
+    padding: 0;
+  }
+  .closing-card ol li {
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+  .closing-card ol li:last-child { margin-bottom: 0; }
+
+  .insights-footer {
+    font-size: 12px;
+    color: var(--mc-pep-muted);
+    line-height: 1.65;
+    padding-top: 18px;
+    border-top: 1px solid var(--mc-border-soft);
+    margin-top: 12px;
+  }
+
+  @media (max-width: 640px) {
+    .insights-wrap { padding: 24px 16px 48px; }
+    .insights-h1 { font-size: 30px; }
+    .takeaway { padding: 22px 18px; }
+    .takeaway h2 { font-size: 20px; }
+    .closing-card { padding: 24px 20px; }
+    .closing-card h2 { font-size: 22px; }
+  }
+
   /* Loading / error */
   .state-msg {
     padding: 60px 30px;
@@ -507,11 +755,26 @@
     }
   }
 
-  @media (max-width: 640px) {
-    .topbar-inner { padding: 12px 16px; gap: 12px; }
+  @media (max-width: 760px) {
+    .topbar-inner {
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      gap: 10px 14px;
+      row-gap: 6px;
+    }
     .wordmark { height: 28px; }
-    .title-block h1 { font-size: 17px; }
-    .asof { padding-left: 10px; font-size: 11px; }
+    .title-block { flex: 1 1 0; min-width: 0; }
+    .title-block h1 { font-size: 18px; }
+    .title-block .sub { display: none; }
+    .asof { padding-left: 12px; font-size: 11px; }
+    .tabs {
+      order: 99;
+      width: 100%;
+      border-top: 1px solid var(--mc-border-soft);
+      padding-top: 4px;
+      margin-bottom: -1px;
+    }
+    .tab-btn { padding: 10px 14px; font-size: 14px; }
     .app { padding: 16px 14px 48px; }
     .panel { padding: 18px 16px; }
     .panel-head h2 { font-size: 20px; }
@@ -528,12 +791,18 @@
       <h1>Mailchimp.com Acquisition Funnel</h1>
       <div class="sub">FY26 Web Scorecard methodology: Visits &rarr; Activations &rarr; Trial Starts &rarr; Paid</div>
     </div>
+    <div class="tabs" role="tablist" aria-label="Dashboard sections">
+      <button type="button" class="tab-btn" id="tab-funnel" role="tab" aria-selected="true" aria-controls="panel-funnel" tabindex="0">Funnel</button>
+      <button type="button" class="tab-btn" id="tab-insights" role="tab" aria-selected="false" aria-controls="panel-insights" tabindex="-1">Insights</button>
+    </div>
     <div class="asof" aria-live="polite">
       <span>as of</span>
       <strong id="asof-date">loading</strong>
     </div>
   </div>
 </header>
+
+<section role="tabpanel" id="panel-funnel" aria-labelledby="tab-funnel">
 
 <div class="app">
 
@@ -716,6 +985,247 @@
   Calibration vs FY26 Web Scorecard (US, FY26 fw 1-13): Visits &minus;6.2%, Activations &minus;6.8%, Paid +0.2% within tolerance; Trial Starts &minus;24.6% (BI <code>free_trial_users</code> excludes immediate-to-paid bypassers that the Tableau scorecard appears to roll into trial starts).
 </footer>
 
+</section>
+
+<section role="tabpanel" id="panel-insights" aria-labelledby="tab-insights" hidden>
+  <div class="insights-wrap">
+
+    <div class="insights-hero">
+      <div class="eyebrow">Executive synthesis</div>
+      <h1 class="insights-h1">Mailchimp acquisition + self-serve health</h1>
+      <p class="standfirst">Pulled from 6 internal documents: Scaled Acquisition (March 2025, n=full prospect/new-user research), Prospect Needs (Dec 2024 prospect survey, n=877), and FY26 Self-Serve Acceleration (Dec 19, 2025 SLT pre-read).</p>
+    </div>
+
+    <div class="tldr-card">
+      <div class="tldr-label">TL;DR</div>
+      <p>The self-serve funnel is leaking and the evidence is consistent across qual and quant: prospects are not unconvinced about Mailchimp's power, they are uncertain whether it is for them, what to pick, and whether now is the right moment. Conversion gains depend on relevance, pricing clarity, and removing trial-start friction far more than on adding features. Without intervention, Self-Serve will miss FY26 plan by approximately $4.8M NB MRR (~113K new-booking users).</p>
+    </div>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">1</span>
+      <h2>Acquisition is choking at the top of the funnel, with structural drag, not a temporary dip</h2>
+      <h3>Quant</h3>
+      <ul>
+        <li>Only 3% of site visitors activate each month (Scaled Acquisition US TAM Waterfall).</li>
+        <li>Traffic-to-Activation CVR has fallen quarter over quarter: FY25 Q1 2.52%, Q2 1.84%, Q3 1.55%, Q4 1.70%, FY26 Q1 1.71% (68 ITPY).</li>
+        <li>November 2025 traffic was up (133 ITPY) but mostly bots and low-CVR paid digital. Marginal ROI of paid spend in FY25 was $0.49.</li>
+        <li>FY26 Self-Serve gap to plan: -$3.8M run-rate plus +$1.0M H2 catch-up = $4.8M NB MRR / ~113K users.</li>
+      </ul>
+      <h3>Qual</h3>
+      <ul>
+        <li>Homepage is the #1 traffic source but has not been refreshed in years; lacks ICP-specific messaging, social proof, and interactive content vs. peers (e.g., Klaviyo has ICP sub-pages within solutions; Mailchimp has one).</li>
+        <li>Tagging gaps are limiting visibility into GEO and search trend movement.</li>
+      </ul>
+    </article>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">2</span>
+      <h2>The biggest barrier across the entire funnel is "I'm not sure this is for organizations like mine"</h2>
+      <h3>Quant</h3>
+      <ul>
+        <li>#1 near-term addressable barrier across volume AND revenue: "Not sure if/how orgs like us use Mailchimp."</li>
+        <li>37% of Prospects and 18% of Free New Users cite this as their primary barrier.</li>
+        <li>It also remains a top-4 barrier even among Paid New Users (5% volume, 9% revenue).</li>
+        <li>The single top barrier when prospects must pick one out of ~100: "Not the right time" at 18% overall, and 24% among Ecomm.</li>
+        <li>14% of Basic prospects are unsure how organizations like theirs use Mailchimp (vs. 6% of Advanced).</li>
+      </ul>
+      <h3>Qual</h3>
+      <ul>
+        <li>Mailchimp.com explains how the product works but is less effective at proving whether it works for them. Even Advanced prospects: 64% feel they understand "how to use" Mailchimp, but only 44% feel confident about industry/organizational fit, 43% on competitive comparisons, 42% on ease of use at scale.</li>
+        <li>Sales specialists report that name-dropping a customer in the prospect's industry is one of the most effective tactics. Today the website does almost none of this.</li>
+      </ul>
+    </article>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">3</span>
+      <h2>Pricing is the #1 reason prospects visit, and it is the #2 thing blocking signup</h2>
+      <h3>Quant</h3>
+      <ul>
+        <li>57% of all prospects come to Mailchimp.com to evaluate pricing/value (Prospect Needs, Dec 2024 survey, n=877).</li>
+        <li>Only ~60% feel they get enough clarity on pricing and product, especially around scaling costs and flexibility.</li>
+        <li>For Advanced prospects, Pricing &amp; Value is the #2 barrier (28%), behind only organizational readiness; sub-barriers include package inflexibility (3%), cost increases over time (3%), confusing pricing structures (3%), large-list cost (2%).</li>
+        <li>For Basic prospects, Pricing &amp; Billing is cited by 28% as a friction.</li>
+        <li>Ecomm specifically: audience size is 2.5x more likely to be a barrier to signing up vs. other verticals, due to cost-scaling sensitivity.</li>
+      </ul>
+      <h3>Qual</h3>
+      <ul>
+        <li>The fix is not more transparency on the page; it is repositioning value. From Scaled Acquisition: "the solve may not be making the page on .com more clear but rather addressing how we better position value and ROI to resonate with the customer." Prospects evaluate ROI through traffic and campaign metrics; Paid users and high-value prospects shift to campaign engagement.</li>
+      </ul>
+    </article>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">4</span>
+      <h2>Sign-up to trial is the single biggest conversion leak, and it is largely self-inflicted</h2>
+      <h3>Quant</h3>
+      <ul>
+        <li>68% drop-off between Activation and Trial Start (FY26 Q1 32% conversion vs. industry 40-60%).</li>
+        <li>This drop-off has worsened by +6 pp over the past 6 months.</li>
+        <li>16 onboarding screens vs. Klaviyo 13, Brevo 12, Shopify 6.</li>
+        <li>Trial-start to Paid is 64%, strong, but only because most users were filtered out earlier.</li>
+        <li>45% of free trials do not convert to paid.</li>
+      </ul>
+      <h3>Qual</h3>
+      <ul>
+        <li>Two compounding causes: (1) email validation + (2) credit-card-required-before-trial-start. All five closest peers (Constant Contact, Shopify, Brevo, ActiveCampaign, HubSpot) allow trial without CC.</li>
+        <li>No abandonment nurture exists today. Klaviyo runs a daily drip; Mailchimp can take a full week to follow up.</li>
+        <li>The post-onboarding dashboard surfaces multiple competing CTAs and is not personalized to the ICP they declared during signup.</li>
+      </ul>
+    </article>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">5</span>
+      <h2>Prospects are early-stage and risk-averse, not feature-shoppers</h2>
+      <h3>Quant</h3>
+      <ul>
+        <li>65% new to the category, 75% self-identify as Basic, 80% spend $0/mo on tools today.</li>
+        <li>Org size: 42% solo operators, 33% with 2-10 employees.</li>
+        <li>Decision drivers (consistent across verticals): ease of use 73%, products/features 70%, integrations 51%, pricing 43%.</li>
+        <li>Top objective on landing: pricing 57%, product capabilities 50%, value 42%, business relevance 39%.</li>
+        <li>81% come looking for email first; design tools and automations are #2/#3 at 53% / 52%.</li>
+        <li>Prospect Intent is bimodal but balanced: ~43-44% plan to create an account same day; ~44-48% are still researching. 93%+ have clear plans to use a marketing platform.</li>
+      </ul>
+      <h3>Qual</h3>
+      <ul>
+        <li>"Not ready yet" is the dominant blocker, not feature gaps. Their hesitation is about timing and confidence, not capability.</li>
+        <li>Sign-up itself is often part of researching, not a final commitment. CTA framing should reflect "explore before you commit," not "buy now."</li>
+      </ul>
+    </article>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">6</span>
+      <h2>Sophistication splits prospects more than vertical does, but verticals still need light tailoring</h2>
+      <h3>Quant</h3>
+      <ul>
+        <li>Web traffic mix: Basic ~60-70%, Advanced ~20-30%.</li>
+        <li>Vertical mix: Ecomm ~15%, Invoiced Services ~15%, Content 10-20%, Tech 5-10%.</li>
+        <li>Advanced are 2x more likely to spend $100+/mo (14% vs. 7%), 1.5x more likely to be switchers (28% vs. 19%), and overindex in software/tech (19% vs. 12%).</li>
+        <li>Advanced barriers diverge: switching difficulty 20% (vs. 8% Basic), insufficient features 18% (vs. 12%), insufficient integrations 12%.</li>
+      </ul>
+      <h3>Qual</h3>
+      <ul>
+        <li>Across verticals, prospects look more alike than different. Differences are degree, not kind:
+          <ul>
+            <li>Ecomm: outcome-driven, validates via purchases/bookings; sensitive to integrations (Klaviyo, Shopify, Brevo).</li>
+            <li>Invoiced Services: relationship-led, prefers assisted setup; gravitates toward CRMs (Square, Pipedrive).</li>
+            <li>Content + Tech: scale/internationalization mindset; values transparency, docs, performance.</li>
+          </ul>
+        </li>
+        <li>Advanced prospects need proof, not education: integrations confidence, scale validation, switching support.</li>
+      </ul>
+    </article>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">7</span>
+      <h2>The fix is unified site + layered reassurance, not segmented experiences</h2>
+      <h3>Quant</h3>
+      <ul>
+        <li>Only ~60% find what they need on pricing or product info, even when they actively visited those pages.</li>
+        <li>"Insufficient support" is the #2 friction for Basic at 16%.</li>
+        <li>"Unsure how to get started" is a top-3 primary barrier for both Prospects and Free Users (&gt;10% each).</li>
+      </ul>
+      <h3>Qual recommendations from research, ranked by mapped FY26 commitments</h3>
+      <ol class="qual-list">
+        <li>Email-First, Grow-When-Ready homepage narrative. Anchor on email, layer in automation/CRM/AI on scroll.</li>
+        <li>Pricing as a confidence builder. Start-free/upgrade-later framing, list-size scaling examples, plan recommendations (committed Jan 8 launch).</li>
+        <li>Outcome- and ICP-based navigation. "What you can do" + "Who it's for" instead of feature labels.</li>
+        <li>Reframe sign-up as a learning step. "Explore before you commit," "No credit card. See how it works."</li>
+        <li>Selective social proof for scale. Small-business stories for Basic, integration logos for Advanced, international stories for Content/Tech.</li>
+        <li>Explicit "what happens next" patterns at every decision point.</li>
+        <li>Reframe paid upgrade as momentum. "You're ready for X" cues over feature-comparison gating.</li>
+      </ol>
+    </article>
+
+    <article class="takeaway">
+      <span class="badge" aria-hidden="true">8</span>
+      <h2>The FY26 plan converges on the same answers, execution risk is the variable</h2>
+      <div class="fy26-table-wrap">
+        <div class="fy26-table-title">FY26 Big 7 commitments</div>
+        <table class="fy26">
+          <thead>
+            <tr>
+              <th>Pillar</th>
+              <th>Big Swing</th>
+              <th>Owner</th>
+              <th>ETA</th>
+              <th>Sized impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Traffic</td>
+              <td>GEO offsite presence (most-cited influencers/affiliates)</td>
+              <td>Ellen M</td>
+              <td>Ongoing</td>
+              <td>$100K+ in-year</td>
+            </tr>
+            <tr>
+              <td>Traffic</td>
+              <td>ICP-back paid media (Ecomm, SB)</td>
+              <td>Daniel B</td>
+              <td>Feb</td>
+              <td>Moderate</td>
+            </tr>
+            <tr>
+              <td>Traffic to Activation</td>
+              <td>Reimagine homepage with ICP social proof + interactive</td>
+              <td>Christine K</td>
+              <td>Early Feb</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td>Traffic to Activation</td>
+              <td>Redesign pricing page with social proof + plan recos</td>
+              <td>Christine K</td>
+              <td>Jan 8</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td>Activation to Trial</td>
+              <td>Remove credit-card requirement</td>
+              <td>Ryan T</td>
+              <td>Feb</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td>Trial to Paid</td>
+              <td>Trial-specific LCM cadence</td>
+              <td>Sarah M</td>
+              <td>Early Feb</td>
+              <td>High</td>
+            </tr>
+            <tr>
+              <td>Trial to Paid</td>
+              <td>ICP-personalized in-product setup</td>
+              <td>Rianna S</td>
+              <td>Jan</td>
+              <td>High</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="quick-wins">
+        <strong>Quick wins flagged:</strong> F250 (free contact cap from 500 to 250) declared a win and live; SEM landers scaling; HP omnichannel messaging test won; HubSpot competitor page published.
+      </div>
+    </article>
+
+    <div class="closing-card">
+      <h2>What an executive should walk away with</h2>
+      <ol>
+        <li>Mailchimp's funnel problem is misalignment with prospect mindset, not feature parity.</li>
+        <li>The biggest near-term levers (pricing-page redesign, no-CC trial start, ICP-aware homepage, abandonment nurture) are already named, owned, and dated.</li>
+        <li>The biggest single execution risk is the no-CC trial change: it is the highest-leverage move (peers all allow it; ~68% drop-off lives here) but it has cross-functional dependencies (Web + LCM + Product) and is not yet sized for in-year MRR.</li>
+        <li>There is no need to fragment the site by ICP. One unified narrative + selective vertical proof points does more than per-segment rewrites; research is explicit on this.</li>
+        <li>The dashboard you just shipped is the right operating instrument: the FY26 funnel diagnostic (1.71% to 32% to 64% across the three steps) is exactly what this dashboard tracks weekly, and the YoY view on it is the one that should sit on a leadership review every Monday.</li>
+      </ol>
+    </div>
+
+    <div class="insights-footer">
+      Source documents: Scaled Acquisition Final (Mar 2025); Prospect Needs research deck (re-analysis with Dec 2024 prospect survey); FY26 Self-Serve Acceleration pre-read (Dec 19, 2025 SLT). Internal Mailchimp / Intuit research, not for external distribution.
+    </div>
+
+  </div>
+</section>
+
 <script>
 (function(){
   "use strict";
@@ -748,6 +1258,7 @@
 
   // State
   const state = {
+    tab: "funnel",
     range: 30,
     scope: "global",
     lf: new Set(),
@@ -757,6 +1268,8 @@
     nr: new Set(),
     trendStage: "visits"
   };
+
+  const TAB_IDS = ["funnel", "insights"];
 
   let CUBE = null;
   let TREND = null;
@@ -928,14 +1441,17 @@
   // ----- URL hash sync -----
   function syncHash() {
     const parts = [];
-    parts.push("d=" + state.range);
-    if (state.scope !== "global") parts.push("sc=" + state.scope);
-    if (state.lf.size) parts.push("lf=" + [...state.lf].map(encodeURIComponent).join(","));
-    if (state.ch.size) parts.push("ch=" + [...state.ch].map(encodeURIComponent).join(","));
-    if (state.co.size) parts.push("co=" + [...state.co].map(encodeURIComponent).join(","));
-    if (state.dv.size) parts.push("dv=" + [...state.dv].map(encodeURIComponent).join(","));
-    if (state.nr.size) parts.push("nr=" + [...state.nr].map(encodeURIComponent).join(","));
-    if (state.trendStage !== "visits") parts.push("ts=" + state.trendStage);
+    parts.push("tab=" + state.tab);
+    if (state.tab === "funnel") {
+      parts.push("d=" + state.range);
+      if (state.scope !== "global") parts.push("sc=" + state.scope);
+      if (state.lf.size) parts.push("lf=" + [...state.lf].map(encodeURIComponent).join(","));
+      if (state.ch.size) parts.push("ch=" + [...state.ch].map(encodeURIComponent).join(","));
+      if (state.co.size) parts.push("co=" + [...state.co].map(encodeURIComponent).join(","));
+      if (state.dv.size) parts.push("dv=" + [...state.dv].map(encodeURIComponent).join(","));
+      if (state.nr.size) parts.push("nr=" + [...state.nr].map(encodeURIComponent).join(","));
+      if (state.trendStage !== "visits") parts.push("ts=" + state.trendStage);
+    }
     const h = parts.join("&");
     if (h !== location.hash.replace(/^#/, "")) {
       history.replaceState(null, "", "#" + h);
@@ -948,7 +1464,9 @@
       const [k, v] = part.split("=");
       if (!k || v === undefined) return;
       const vals = v.split(",").map(decodeURIComponent).filter(Boolean);
-      if (k === "d") {
+      if (k === "tab") {
+        if (TAB_IDS.indexOf(v) !== -1) state.tab = v;
+      } else if (k === "d") {
         const n = parseInt(v, 10);
         if (n === 30 || n === 90) state.range = n;
       } else if (k === "sc") {
@@ -960,6 +1478,57 @@
       else if (k === "co") state.co = new Set(vals);
       else if (k === "dv") state.dv = new Set(vals);
       else if (k === "nr") state.nr = new Set(vals);
+    });
+  }
+
+  // ----- Tab switching -----
+  function applyTab(tab) {
+    state.tab = tab;
+    TAB_IDS.forEach(t => {
+      const btn = document.getElementById("tab-" + t);
+      const panel = document.getElementById("panel-" + t);
+      const isActive = t === tab;
+      if (btn) {
+        btn.setAttribute("aria-selected", isActive ? "true" : "false");
+        btn.tabIndex = isActive ? 0 : -1;
+      }
+      if (panel) {
+        if (isActive) panel.removeAttribute("hidden");
+        else panel.setAttribute("hidden", "");
+      }
+    });
+  }
+  function setTab(tab, focusBtn) {
+    if (TAB_IDS.indexOf(tab) === -1) return;
+    applyTab(tab);
+    syncHash();
+    if (focusBtn) {
+      const btn = document.getElementById("tab-" + tab);
+      if (btn) btn.focus();
+    }
+  }
+  function initTabs() {
+    TAB_IDS.forEach((t, i) => {
+      const btn = document.getElementById("tab-" + t);
+      if (!btn) return;
+      btn.addEventListener("click", () => setTab(t, false));
+      btn.addEventListener("keydown", (e) => {
+        let next = null;
+        const k = e.key;
+        if (k === "ArrowLeft" || k === "ArrowUp") {
+          next = TAB_IDS[(i - 1 + TAB_IDS.length) % TAB_IDS.length];
+        } else if (k === "ArrowRight" || k === "ArrowDown") {
+          next = TAB_IDS[(i + 1) % TAB_IDS.length];
+        } else if (k === "Home") {
+          next = TAB_IDS[0];
+        } else if (k === "End") {
+          next = TAB_IDS[TAB_IDS.length - 1];
+        }
+        if (next) {
+          e.preventDefault();
+          setTab(next, true);
+        }
+      });
     });
   }
 
@@ -1430,12 +1999,16 @@
 
   // ----- Boot -----
   async function boot() {
+    initTabs();
+
     const ok = await loadData();
     if (!ok) return;
 
     document.getElementById("asof-date").textContent = CUBE.as_of || "--";
 
     loadHash();
+    applyTab(state.tab);
+    syncHash();
 
     // reflect loaded range + scope
     document.querySelectorAll(".date-toggle button[data-range]").forEach(b2 => {
