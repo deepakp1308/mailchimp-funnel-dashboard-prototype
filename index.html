@@ -526,7 +526,7 @@
     <img src="./assets/mailchimp.svg" alt="Mailchimp" class="wordmark" />
     <div class="title-block">
       <h1>Mailchimp.com Acquisition Funnel</h1>
-      <div class="sub">Visitor to purchase, seven stages, current period vs prior year</div>
+      <div class="sub">FY26 Web Scorecard methodology: Visits &rarr; Activations &rarr; Trial Starts &rarr; Paid</div>
     </div>
     <div class="asof" aria-live="polite">
       <span>as of</span>
@@ -543,6 +543,14 @@
       <div class="date-toggle" role="radiogroup" aria-label="Date range">
         <button type="button" data-range="30" class="active" aria-pressed="true">Last 30 days</button>
         <button type="button" data-range="90" aria-pressed="false">Last 90 days</button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h2>Scope</h2>
+      <div class="date-toggle" role="radiogroup" aria-label="Geographic scope">
+        <button type="button" data-scope="global" class="active" aria-pressed="true">Global</button>
+        <button type="button" data-scope="us" aria-pressed="false">US only</button>
       </div>
     </div>
 
@@ -583,27 +591,27 @@
 
       <section class="kpi-grid" aria-label="Headline KPIs" aria-live="polite">
         <div class="kpi-card">
-          <div class="kpi-label">Visitors</div>
-          <div class="kpi-value" id="kpi-s1">--</div>
+          <div class="kpi-label">Visits</div>
+          <div class="kpi-value" id="kpi-visits">--</div>
           <div class="kpi-compare">
-            <span class="delta" id="kpi-s1-delta">--</span>
-            <span class="kpi-prior">vs <strong id="kpi-s1-prior">--</strong> prior year</span>
+            <span class="delta" id="kpi-visits-delta">--</span>
+            <span class="kpi-prior">vs <strong id="kpi-visits-prior">--</strong> prior year</span>
           </div>
         </div>
         <div class="kpi-card teal">
-          <div class="kpi-label">Submitted signups</div>
-          <div class="kpi-value" id="kpi-s4">--</div>
+          <div class="kpi-label">Activations</div>
+          <div class="kpi-value" id="kpi-activations">--</div>
           <div class="kpi-compare">
-            <span class="delta" id="kpi-s4-delta">--</span>
-            <span class="kpi-prior">vs <strong id="kpi-s4-prior">--</strong> prior year</span>
+            <span class="delta" id="kpi-activations-delta">--</span>
+            <span class="kpi-prior">vs <strong id="kpi-activations-prior">--</strong> prior year</span>
           </div>
         </div>
         <div class="kpi-card pep">
-          <div class="kpi-label">Purchases</div>
-          <div class="kpi-value" id="kpi-s7">--</div>
+          <div class="kpi-label">Paid</div>
+          <div class="kpi-value" id="kpi-paid">--</div>
           <div class="kpi-compare">
-            <span class="delta" id="kpi-s7-delta">--</span>
-            <span class="kpi-prior">vs <strong id="kpi-s7-prior">--</strong> prior year</span>
+            <span class="delta" id="kpi-paid-delta">--</span>
+            <span class="kpi-prior">vs <strong id="kpi-paid-prior">--</strong> prior year</span>
           </div>
         </div>
       </section>
@@ -612,7 +620,7 @@
         <div class="panel-head">
           <div>
             <h2>Sequenced funnel</h2>
-            <div class="desc">Each stage is a subset of the prior step, based on ordered timestamps per visitor.</div>
+            <div class="desc">Visits, Activations, Trial Starts, Paid &mdash; each stage shown vs prior-year underlay; conversion ratios use period totals.</div>
           </div>
           <div class="legend">
             <span><span class="legend-swatch" style="background:var(--mc-teal)"></span>Current period</span>
@@ -620,7 +628,7 @@
           </div>
         </div>
         <div class="funnel-wrap">
-          <svg class="funnel-svg" id="funnel-svg" viewBox="0 0 880 440" preserveAspectRatio="xMinYMin meet" aria-label="Funnel chart"></svg>
+          <svg class="funnel-svg" id="funnel-svg" viewBox="0 0 880 280" preserveAspectRatio="xMinYMin meet" aria-label="Funnel chart"></svg>
           <div class="funnel-tooltip" id="funnel-tooltip"></div>
         </div>
       </section>
@@ -669,10 +677,11 @@
               <thead>
                 <tr>
                   <th>Channel</th>
-                  <th class="num">Visitors</th>
-                  <th class="num">Signups</th>
-                  <th class="num">Purchases</th>
-                  <th class="num">Conv.</th>
+                  <th class="num">Visits</th>
+                  <th class="num">Activations</th>
+                  <th class="num">Trials</th>
+                  <th class="num">Paid</th>
+                  <th class="num">Visit&rarr;Paid</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -684,10 +693,11 @@
               <thead>
                 <tr>
                   <th>Landing family</th>
-                  <th class="num">Visitors</th>
-                  <th class="num">Signups</th>
-                  <th class="num">Purchases</th>
-                  <th class="num">Conv.</th>
+                  <th class="num">Visits</th>
+                  <th class="num">Activations</th>
+                  <th class="num">Trials</th>
+                  <th class="num">Paid</th>
+                  <th class="num">Visit&rarr;Paid</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -701,24 +711,25 @@
 </div>
 
 <footer class="site">
-  Built from <code>mc-business-intelligence.google_analytics.fct_ga4_visitor_session_events_daily</code>, filtered to <code>mailchimp.com</code> hostname.
-  Funnel stages are sequenced per visitor on event timestamps. Rows with fewer than five visitors at stage one are suppressed in the cube.
+  Sources: <code>google_analytics.fct_ga4_visitor_session_events_daily</code> (Visits, Activations); <code>bi_aggregate.free_trials_weekly</code> (Trial Starts); <code>bi_aggregate.bookings_weekly</code> (Paid). Mailchimp.com hostname; non-customer sessions only.
+  Trial Starts and Paid are weekly BI aggregates distributed across landing-family / channel / device / new-returning slices proportional to that slice's GA Visits share within the same period and country.
+  Calibration vs FY26 Web Scorecard (US, FY26 fw 1-13): Visits &minus;6.2%, Activations &minus;6.8%, Paid +0.2% within tolerance; Trial Starts &minus;24.6% (BI <code>free_trial_users</code> excludes immediate-to-paid bypassers that the Tableau scorecard appears to roll into trial starts).
 </footer>
 
 <script>
 (function(){
   "use strict";
 
-  const STAGES = ["s1","s2","s3","s4","s5","s6","s7"];
+  // FY26 Web Scorecard four canonical stages
+  const STAGES = ["visits", "activations", "trials", "paid"];
   const STAGE_LABELS = {
-    s1: "Visitors",
-    s2: "Viewed pricing",
-    s3: "Started signup",
-    s4: "Submitted signup",
-    s5: "Began checkout",
-    s6: "Added payment",
-    s7: "Purchased"
+    visits: "Visits",
+    activations: "Activations",
+    trials: "Trial Starts",
+    paid: "Paid"
   };
+  // KPI cards drop "Trial Starts" to keep three cards per the spec
+  const KPI_STAGES = ["visits", "activations", "paid"];
 
   // Canonical option sets
   const LANDING_FAMILIES = [
@@ -738,12 +749,13 @@
   // State
   const state = {
     range: 30,
+    scope: "global",
     lf: new Set(),
     ch: new Set(),
     co: new Set(),
     dv: new Set(),
     nr: new Set(),
-    trendStage: "s1"
+    trendStage: "visits"
   };
 
   let CUBE = null;
@@ -789,11 +801,11 @@
       CUBE = await cubeRes.json();
       TREND = await trendRes.json();
 
-      // derive country list: top 20 by current_30d s1 plus "Other"
+      // derive country list: top 20 by current_30d visits plus "Other"
       const coTotals = {};
       CUBE.rows.forEach(r => {
         if (r.period !== "current_30d") return;
-        coTotals[r.country] = (coTotals[r.country] || 0) + r.s1;
+        coTotals[r.country] = (coTotals[r.country] || 0) + r.visits;
       });
       const sorted = Object.keys(coTotals).sort((a,b) => coTotals[b] - coTotals[a]);
       const named = sorted.filter(c => c !== "Other").slice(0, 20);
@@ -838,16 +850,30 @@
     renderChips("chips-dv", DEVICES, "dv");
     renderChips("chips-nr", VISITOR_TYPES, "nr");
 
-    document.querySelectorAll(".date-toggle button").forEach(btn => {
+    document.querySelectorAll(".date-toggle button[data-range]").forEach(btn => {
       btn.addEventListener("click", () => {
         state.range = parseInt(btn.getAttribute("data-range"), 10);
-        document.querySelectorAll(".date-toggle button").forEach(b2 => {
+        document.querySelectorAll(".date-toggle button[data-range]").forEach(b2 => {
           const on = parseInt(b2.getAttribute("data-range"),10) === state.range;
           b2.classList.toggle("active", on);
           b2.setAttribute("aria-pressed", on ? "true" : "false");
         });
         syncHash();
         render();
+      });
+    });
+
+    document.querySelectorAll(".date-toggle button[data-scope]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.scope = btn.getAttribute("data-scope");
+        document.querySelectorAll(".date-toggle button[data-scope]").forEach(b2 => {
+          const on = b2.getAttribute("data-scope") === state.scope;
+          b2.classList.toggle("active", on);
+          b2.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        syncHash();
+        render();
+        renderTrend();
       });
     });
 
@@ -858,14 +884,21 @@
       state.dv.clear();
       state.nr.clear();
       state.range = 30;
+      state.scope = "global";
       document.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed","false"));
-      document.querySelectorAll(".date-toggle button").forEach(b2 => {
+      document.querySelectorAll(".date-toggle button[data-range]").forEach(b2 => {
         const on = parseInt(b2.getAttribute("data-range"),10) === 30;
+        b2.classList.toggle("active", on);
+        b2.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      document.querySelectorAll(".date-toggle button[data-scope]").forEach(b2 => {
+        const on = b2.getAttribute("data-scope") === "global";
         b2.classList.toggle("active", on);
         b2.setAttribute("aria-pressed", on ? "true" : "false");
       });
       syncHash();
       render();
+      renderTrend();
     });
 
     initTrendTabs();
@@ -885,6 +918,7 @@
         state.trendStage = s;
         document.querySelectorAll("#trend-tabs .tab-chip").forEach(x => x.setAttribute("aria-pressed","false"));
         b.setAttribute("aria-pressed","true");
+        syncHash();
         renderTrend();
       });
       el.appendChild(b);
@@ -895,11 +929,13 @@
   function syncHash() {
     const parts = [];
     parts.push("d=" + state.range);
+    if (state.scope !== "global") parts.push("sc=" + state.scope);
     if (state.lf.size) parts.push("lf=" + [...state.lf].map(encodeURIComponent).join(","));
     if (state.ch.size) parts.push("ch=" + [...state.ch].map(encodeURIComponent).join(","));
     if (state.co.size) parts.push("co=" + [...state.co].map(encodeURIComponent).join(","));
     if (state.dv.size) parts.push("dv=" + [...state.dv].map(encodeURIComponent).join(","));
     if (state.nr.size) parts.push("nr=" + [...state.nr].map(encodeURIComponent).join(","));
+    if (state.trendStage !== "visits") parts.push("ts=" + state.trendStage);
     const h = parts.join("&");
     if (h !== location.hash.replace(/^#/, "")) {
       history.replaceState(null, "", "#" + h);
@@ -915,6 +951,10 @@
       if (k === "d") {
         const n = parseInt(v, 10);
         if (n === 30 || n === 90) state.range = n;
+      } else if (k === "sc") {
+        if (v === "global" || v === "us") state.scope = v;
+      } else if (k === "ts") {
+        if (STAGES.indexOf(v) !== -1) state.trendStage = v;
       } else if (k === "lf") state.lf = new Set(vals);
       else if (k === "ch") state.ch = new Set(vals);
       else if (k === "co") state.co = new Set(vals);
@@ -926,6 +966,7 @@
   // ----- Core aggregation -----
   function matchesFilters(row, period) {
     if (row.period !== period) return false;
+    if (state.scope === "us" && row.country !== "United States") return false;
     if (state.lf.size && !state.lf.has(row.landing_family)) return false;
     if (state.ch.size && !state.ch.has(row.channel)) return false;
     if (state.co.size && !state.co.has(row.country)) return false;
@@ -934,11 +975,11 @@
     return true;
   }
   function aggregate(period) {
-    const t = { rows: 0, s1:0, s2:0, s3:0, s4:0, s5:0, s6:0, s7:0 };
+    const t = { rows: 0, visits: 0, activations: 0, trials: 0, paid: 0 };
     CUBE.rows.forEach(r => {
       if (!matchesFilters(r, period)) return;
       t.rows++;
-      for (let i = 0; i < STAGES.length; i++) t[STAGES[i]] += r[STAGES[i]];
+      for (let i = 0; i < STAGES.length; i++) t[STAGES[i]] += r[STAGES[i]] || 0;
     });
     return t;
   }
@@ -947,12 +988,15 @@
     CUBE.rows.forEach(r => {
       if (!matchesFilters(r, period)) return;
       const key = r[dim];
-      if (!map[key]) map[key] = { name: key, s1:0, s4:0, s7:0 };
-      map[key].s1 += r.s1;
-      map[key].s4 += r.s4;
-      map[key].s7 += r.s7;
+      if (!map[key]) map[key] = { name: key, visits: 0, activations: 0, trials: 0, paid: 0 };
+      map[key].visits      += r.visits || 0;
+      map[key].activations += r.activations || 0;
+      map[key].trials      += r.trials || 0;
+      map[key].paid        += r.paid || 0;
     });
-    return Object.values(map).sort((a,b) => b.s7 - a.s7 || b.s4 - a.s4 || b.s1 - a.s1).slice(0, topN);
+    return Object.values(map).sort((a,b) =>
+      b.paid - a.paid || b.trials - a.trials || b.activations - a.activations || b.visits - a.visits
+    ).slice(0, topN);
   }
 
   function periodKey(which) {
@@ -962,18 +1006,16 @@
 
   // ----- Render: KPIs -----
   function renderKpis(cur, pri) {
-    const set = (id, val) => document.getElementById(id).textContent = val;
-    set("kpi-s1", humanize(cur.s1));
-    set("kpi-s4", humanize(cur.s4));
-    set("kpi-s7", humanize(cur.s7));
-    set("kpi-s1-prior", humanize(pri.s1));
-    set("kpi-s4-prior", humanize(pri.s4));
-    set("kpi-s7-prior", humanize(pri.s7));
-    ["s1","s4","s7"].forEach(s => {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    KPI_STAGES.forEach(s => {
+      set("kpi-" + s, humanize(cur[s]));
+      set("kpi-" + s + "-prior", humanize(pri[s]));
       const d = yoyDelta(cur[s], pri[s]);
       const el = document.getElementById("kpi-" + s + "-delta");
-      el.textContent = d.text;
-      el.className = "delta " + d.cls;
+      if (el) {
+        el.textContent = d.text;
+        el.className = "delta " + d.cls;
+      }
     });
   }
 
@@ -982,13 +1024,13 @@
     const svg = document.getElementById("funnel-svg");
     svg.innerHTML = "";
 
-    const W = 880, H = 440;
-    const PAD_L = 170, PAD_R = 120, PAD_T = 16, PAD_B = 16;
+    const W = 880, H = 280;
+    const PAD_L = 170, PAD_R = 130, PAD_T = 18, PAD_B = 18;
     const barArea = W - PAD_L - PAD_R;
-    const barH = 42;
-    const gap = 12;
+    const barH = 46;
+    const gap = 16;
 
-    const maxVal = Math.max(cur.s1 || 1, pri.s1 || 1);
+    const maxVal = Math.max(cur.visits || 1, pri.visits || 1);
     const tealColor = "#007C89";
     const priorColor = "#BFAE9B";
 
@@ -998,7 +1040,6 @@
       const curW = Math.max(2, (cur[s] || 0) / maxVal * barArea);
       const priW = Math.max(0, (pri[s] || 0) / maxVal * barArea);
 
-      // label
       const lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
       lbl.setAttribute("x", PAD_L - 14);
       lbl.setAttribute("y", y + barH / 2 + 4);
@@ -1009,19 +1050,17 @@
       lbl.textContent = (i+1) + ". " + STAGE_LABELS[s];
       svg.appendChild(lbl);
 
-      // prior-year bar underlay
       if (priW > 0) {
         const priRect = document.createElementNS("http://www.w3.org/2000/svg","rect");
         priRect.setAttribute("x", PAD_L);
-        priRect.setAttribute("y", y + 4);
+        priRect.setAttribute("y", y + 5);
         priRect.setAttribute("width", priW);
-        priRect.setAttribute("height", barH - 8);
+        priRect.setAttribute("height", barH - 10);
         priRect.setAttribute("rx", "4");
         priRect.setAttribute("fill", priorColor);
         priRect.setAttribute("opacity", "0.55");
         svg.appendChild(priRect);
       }
-      // current bar
       const curRect = document.createElementNS("http://www.w3.org/2000/svg","rect");
       curRect.setAttribute("x", PAD_L);
       curRect.setAttribute("y", y);
@@ -1033,18 +1072,16 @@
       curRect.style.cursor = "pointer";
       svg.appendChild(curRect);
 
-      // value label on/after bar
       const valT = document.createElementNS("http://www.w3.org/2000/svg","text");
       const valX = PAD_L + curW + 8;
       valT.setAttribute("x", valX);
       valT.setAttribute("y", y + barH / 2 + 4);
-      valT.setAttribute("font-size", "13");
+      valT.setAttribute("font-size", "14");
       valT.setAttribute("font-weight", "700");
       valT.setAttribute("fill", "#241C15");
       valT.textContent = humanize(cur[s]);
       svg.appendChild(valT);
 
-      // conversion rate annotation between stages
       if (i > 0) {
         const prevS = STAGES[i-1];
         const prevVal = cur[prevS];
@@ -1058,13 +1095,13 @@
         rateText.textContent = "step: " + rate.toFixed(rate < 1 ? 2 : 1) + "%";
         svg.appendChild(rateText);
 
-        const toFirst = cur.s1 ? (cur[s] / cur.s1 * 100) : 0;
+        const toFirst = cur.visits ? (cur[s] / cur.visits * 100) : 0;
         const toFirstText = document.createElementNS("http://www.w3.org/2000/svg","text");
         toFirstText.setAttribute("x", W - PAD_R + 12);
         toFirstText.setAttribute("y", y + barH / 2 + 4);
         toFirstText.setAttribute("font-size", "11");
         toFirstText.setAttribute("fill", "#5C4F45");
-        toFirstText.textContent = "of visitors: " + toFirst.toFixed(toFirst < 1 ? 2 : 1) + "%";
+        toFirstText.textContent = "of visits: " + toFirst.toFixed(toFirst < 1 ? 2 : 1) + "%";
         svg.appendChild(toFirstText);
       } else {
         const baseText = document.createElementNS("http://www.w3.org/2000/svg","text");
@@ -1077,7 +1114,6 @@
       }
     }
 
-    // tooltip bindings
     const tip = document.getElementById("funnel-tooltip");
     const wrap = svg.parentElement;
     const rects = svg.querySelectorAll("rect[data-stage]");
@@ -1087,7 +1123,7 @@
         const idx = STAGES.indexOf(s);
         const prevS = idx > 0 ? STAGES[idx-1] : null;
         const stepRate = prevS && cur[prevS] ? (cur[s] / cur[prevS] * 100) : null;
-        const totalRate = cur.s1 ? (cur[s] / cur.s1 * 100) : null;
+        const totalRate = cur.visits ? (cur[s] / cur.visits * 100) : null;
         const yoy = yoyDelta(cur[s], pri[s]);
         tip.innerHTML = `
           <div style="font-weight:700;margin-bottom:4px;">${idx+1}. ${STAGE_LABELS[s]}</div>
@@ -1095,7 +1131,7 @@
           <div class="t-row"><span>Prior year</span><span>${fullNum(pri[s])}</span></div>
           <div class="t-row"><span>YoY</span><span class="t-sub">${yoy.text}</span></div>
           ${stepRate !== null ? `<div class="t-row"><span>Step conv.</span><span class="t-sub">${stepRate.toFixed(stepRate < 1 ? 2 : 1)}%</span></div>` : ""}
-          ${totalRate !== null ? `<div class="t-row"><span>From visitors</span><span class="t-sub">${totalRate.toFixed(totalRate < 1 ? 2 : 1)}%</span></div>` : ""}
+          ${totalRate !== null ? `<div class="t-row"><span>From visits</span><span class="t-sub">${totalRate.toFixed(totalRate < 1 ? 2 : 1)}%</span></div>` : ""}
         `;
         const wrapRect = wrap.getBoundingClientRect();
         const x = evt.clientX - wrapRect.left + 14;
@@ -1112,11 +1148,12 @@
   function renderYoy(cur, pri) {
     const grid = document.getElementById("yoy-grid");
     grid.innerHTML = "";
-    const maxVal = Math.max(cur.s1 || 1, pri.s1 || 1);
+    // Each stage normalized to its own max so trials/paid bars are visible.
     STAGES.forEach((s, idx) => {
       const d = yoyDelta(cur[s], pri[s]);
-      const curPct = (cur[s] / maxVal) * 100;
-      const priPct = (pri[s] / maxVal) * 100;
+      const localMax = Math.max(cur[s] || 1, pri[s] || 1);
+      const curPct = (cur[s] / localMax) * 100;
+      const priPct = (pri[s] / localMax) * 100;
       const card = document.createElement("div");
       card.className = "yoy-card";
       card.innerHTML = `
@@ -1136,11 +1173,6 @@
   }
 
   // ----- Render: Trend -----
-  const STAGE_TO_TREND_KEY = {
-    s1: "s1_visitors", s2: "s2_viewed_pricing", s3: "s3_started_signup",
-    s4: "s4_submitted_signup", s5: "s5_begin_checkout", s6: "s6_added_payment",
-    s7: "s7_purchased"
-  };
 
   function fmtMonthDay(iso) {
     const parts = iso.split("-");
@@ -1152,14 +1184,15 @@
     return months[parseInt(parts[1],10) - 1] + " " + parts[0].slice(2);
   }
 
+  // Trend currently reflects unfiltered global series for the selected stage.
+  // (Granular filtering at week-level would require a different cube.)
   function renderTrend() {
     const svg = document.getElementById("trend-svg");
     svg.innerHTML = "";
     const weeks = TREND.weeks;
     const weeksPrior = TREND.weeks_prior_year || weeks;
-    const key = STAGE_TO_TREND_KEY[state.trendStage];
-    const cur = TREND.series_current[key];
-    const pri = TREND.series_prior[key];
+    const cur = TREND.series_current[state.trendStage] || [];
+    const pri = TREND.series_prior[state.trendStage] || [];
     const n = Math.min(cur.length, pri.length, weeks.length, weeksPrior.length);
 
     // legend range labels
@@ -1299,7 +1332,7 @@
     foot.setAttribute("y", H - 8);
     foot.setAttribute("font-size","10");
     foot.setAttribute("fill","#8B7E72");
-    foot.textContent = "Stage: " + STAGE_LABELS[state.trendStage] + ", unfiltered mailchimp.com baseline. " + n + " ISO weeks.";
+    foot.textContent = "Stage: " + STAGE_LABELS[state.trendStage] + " (global, unfiltered weekly series). " + n + " ISO weeks; prior overlay shifted 364 days.";
     svg.appendChild(foot);
 
     // Hover hit-zones for tooltip (one rect per week column)
@@ -1353,18 +1386,19 @@
     tbody.innerHTML = "";
     if (!rows.length) {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="5" style="text-align:center;color:var(--mc-pep-muted);padding:22px;">No rows match the current filters</td>`;
+      tr.innerHTML = `<td colspan="6" style="text-align:center;color:var(--mc-pep-muted);padding:22px;">No rows match the current filters</td>`;
       tbody.appendChild(tr);
       return;
     }
     rows.forEach(r => {
-      const convRate = r.s1 ? (r.s7 / r.s1 * 100) : 0;
+      const convRate = r.visits ? (r.paid / r.visits * 100) : 0;
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="name">${escapeHtml(r.name)}</td>
-        <td class="num">${humanize(r.s1)}</td>
-        <td class="num">${humanize(r.s4)}</td>
-        <td class="num">${humanize(r.s7)}</td>
+        <td class="num">${humanize(r.visits)}</td>
+        <td class="num">${humanize(r.activations)}</td>
+        <td class="num">${humanize(r.trials)}</td>
+        <td class="num">${humanize(r.paid)}</td>
         <td class="num rate">${convRate ? convRate.toFixed(convRate < 0.1 ? 3 : 2) + "%" : "--"}</td>
       `;
       tbody.appendChild(tr);
@@ -1403,9 +1437,14 @@
 
     loadHash();
 
-    // reflect loaded range
-    document.querySelectorAll(".date-toggle button").forEach(b2 => {
+    // reflect loaded range + scope
+    document.querySelectorAll(".date-toggle button[data-range]").forEach(b2 => {
       const on = parseInt(b2.getAttribute("data-range"),10) === state.range;
+      b2.classList.toggle("active", on);
+      b2.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    document.querySelectorAll(".date-toggle button[data-scope]").forEach(b2 => {
+      const on = b2.getAttribute("data-scope") === state.scope;
       b2.classList.toggle("active", on);
       b2.setAttribute("aria-pressed", on ? "true" : "false");
     });
