@@ -425,6 +425,25 @@
   }
   .trend-wrap { position: relative; }
   .trend-svg { width: 100%; height: auto; display: block; }
+  .trend-head-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
+  .trend-legend { gap: 18px; }
+  .legend-line {
+    display: inline-block;
+    width: 22px; height: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+    background: var(--mc-teal);
+  }
+  .legend-line.solid { background: var(--mc-teal); }
+  .legend-line.dashed {
+    background: transparent;
+    border-top: 2px dashed var(--mc-pep-light);
+    height: 0;
+  }
 
   /* =============== Mini-tables =============== */
   .table-grid {
@@ -619,13 +638,20 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2>13-week trend</h2>
-            <div class="desc">Total visitors at the selected stage across the last 13 ISO weeks, unfiltered baseline.</div>
+            <h2>Weekly trend (Jul 2025 to today)</h2>
+            <div class="desc" id="trend-desc">Total visitors at the selected stage. Current vs prior-year comparison.</div>
           </div>
           <div class="trend-tabs" id="trend-tabs" role="tablist" aria-label="Trend stage selector"></div>
         </div>
+        <div class="trend-head-row">
+          <div class="legend trend-legend">
+            <span><span class="legend-line solid"></span>Current (<span id="trend-cur-range">--</span>)</span>
+            <span><span class="legend-line dashed"></span>Prior year (<span id="trend-pri-range">--</span>)</span>
+          </div>
+        </div>
         <div class="trend-wrap">
-          <svg class="trend-svg" id="trend-svg" viewBox="0 0 880 300" preserveAspectRatio="xMinYMin meet" aria-label="Weekly trend chart"></svg>
+          <svg class="trend-svg" id="trend-svg" viewBox="0 0 880 320" preserveAspectRatio="xMinYMin meet" aria-label="Weekly trend chart with current and prior-year lines"></svg>
+          <div class="funnel-tooltip" id="trend-tooltip"></div>
         </div>
       </section>
 
@@ -1110,24 +1136,49 @@
   }
 
   // ----- Render: Trend -----
+  const STAGE_TO_TREND_KEY = {
+    s1: "s1_visitors", s2: "s2_viewed_pricing", s3: "s3_started_signup",
+    s4: "s4_submitted_signup", s5: "s5_begin_checkout", s6: "s6_added_payment",
+    s7: "s7_purchased"
+  };
+
+  function fmtMonthDay(iso) {
+    const parts = iso.split("-");
+    return parts[1] + "/" + parts[2];
+  }
+  function fmtMonthYear(iso) {
+    const parts = iso.split("-");
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return months[parseInt(parts[1],10) - 1] + " " + parts[0].slice(2);
+  }
+
   function renderTrend() {
     const svg = document.getElementById("trend-svg");
     svg.innerHTML = "";
     const weeks = TREND.weeks;
-    const key = {
-      s1: "s1_visitors", s2: "s2_viewed_pricing", s3: "s3_started_signup",
-      s4: "s4_submitted_signup", s5: "s5_begin_checkout", s6: "s6_added_payment",
-      s7: "s7_purchased"
-    }[state.trendStage];
-    const values = TREND.series[key];
+    const weeksPrior = TREND.weeks_prior_year || weeks;
+    const key = STAGE_TO_TREND_KEY[state.trendStage];
+    const cur = TREND.series_current[key];
+    const pri = TREND.series_prior[key];
+    const n = Math.min(cur.length, pri.length, weeks.length, weeksPrior.length);
 
-    const W = 880, H = 300;
-    const PAD_L = 56, PAD_R = 24, PAD_T = 20, PAD_B = 42;
+    // legend range labels
+    document.getElementById("trend-cur-range").textContent =
+      fmtMonthYear(weeks[0]) + " to " + fmtMonthYear(weeks[n-1]);
+    document.getElementById("trend-pri-range").textContent =
+      fmtMonthYear(weeksPrior[0]) + " to " + fmtMonthYear(weeksPrior[n-1]);
+    document.getElementById("trend-desc").textContent =
+      "Total " + STAGE_LABELS[state.trendStage].toLowerCase() + " at the selected stage. Current vs prior-year comparison.";
+
+    const W = 880, H = 320;
+    const PAD_L = 56, PAD_R = 24, PAD_T = 20, PAD_B = 56;
     const plotW = W - PAD_L - PAD_R;
     const plotH = H - PAD_T - PAD_B;
-    const maxVal = Math.max(...values);
-    const minVal = 0;
-    const stepX = plotW / (values.length - 1);
+    const maxVal = Math.max(1, ...cur.slice(0, n), ...pri.slice(0, n));
+    const stepX = n > 1 ? plotW / (n - 1) : plotW;
+
+    const tealColor = "#007C89";
+    const priorColor = "#5C4F45";
 
     // gridlines + y labels (4 ticks)
     const ticks = 4;
@@ -1152,61 +1203,93 @@
       svg.appendChild(txt);
     }
 
-    // Build line path
-    let d = "";
-    values.forEach((v, i) => {
-      const x = PAD_L + i * stepX;
-      const y = PAD_T + plotH - (v / maxVal) * plotH;
-      d += (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1);
-    });
+    function buildPath(values) {
+      let d = "";
+      for (let i = 0; i < n; i++) {
+        const v = values[i];
+        const x = PAD_L + i * stepX;
+        const y = PAD_T + plotH - (v / maxVal) * plotH;
+        d += (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1);
+      }
+      return d;
+    }
 
-    // area fill under line
-    const areaD = d + " L " + (PAD_L + (values.length - 1) * stepX).toFixed(1) + "," + (PAD_T + plotH) + " L " + PAD_L + "," + (PAD_T + plotH) + " Z";
+    // Prior-year line (dashed, drawn first so current sits on top)
+    const priD = buildPath(pri);
+    const priPath = document.createElementNS("http://www.w3.org/2000/svg","path");
+    priPath.setAttribute("d", priD);
+    priPath.setAttribute("fill","none");
+    priPath.setAttribute("stroke", priorColor);
+    priPath.setAttribute("stroke-width","2");
+    priPath.setAttribute("stroke-dasharray","5,4");
+    priPath.setAttribute("stroke-linejoin","round");
+    priPath.setAttribute("stroke-linecap","round");
+    priPath.setAttribute("opacity","0.85");
+    svg.appendChild(priPath);
+
+    // Current-period line (solid teal) with light area fill
+    const curD = buildPath(cur);
+    const lastX = PAD_L + (n - 1) * stepX;
+    const areaD = curD + " L " + lastX.toFixed(1) + "," + (PAD_T + plotH) + " L " + PAD_L + "," + (PAD_T + plotH) + " Z";
     const area = document.createElementNS("http://www.w3.org/2000/svg","path");
     area.setAttribute("d", areaD);
-    area.setAttribute("fill", "#007C89");
+    area.setAttribute("fill", tealColor);
     area.setAttribute("opacity","0.10");
     svg.appendChild(area);
 
-    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
-    path.setAttribute("d", d);
-    path.setAttribute("fill","none");
-    path.setAttribute("stroke","#007C89");
-    path.setAttribute("stroke-width","2.5");
-    path.setAttribute("stroke-linejoin","round");
-    path.setAttribute("stroke-linecap","round");
-    svg.appendChild(path);
+    const curPath = document.createElementNS("http://www.w3.org/2000/svg","path");
+    curPath.setAttribute("d", curD);
+    curPath.setAttribute("fill","none");
+    curPath.setAttribute("stroke", tealColor);
+    curPath.setAttribute("stroke-width","2.5");
+    curPath.setAttribute("stroke-linejoin","round");
+    curPath.setAttribute("stroke-linecap","round");
+    svg.appendChild(curPath);
 
-    // points + labels
-    values.forEach((v, i) => {
+    // points (small)
+    for (let i = 0; i < n; i++) {
       const x = PAD_L + i * stepX;
-      const y = PAD_T + plotH - (v / maxVal) * plotH;
-      const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
-      c.setAttribute("cx", x);
-      c.setAttribute("cy", y);
-      c.setAttribute("r", "3.5");
-      c.setAttribute("fill","#FFFFFF");
-      c.setAttribute("stroke","#007C89");
-      c.setAttribute("stroke-width","2");
-      svg.appendChild(c);
-      const title = document.createElementNS("http://www.w3.org/2000/svg","title");
-      title.textContent = weeks[i] + ": " + fullNum(v);
-      c.appendChild(title);
-    });
+      const yp = PAD_T + plotH - (pri[i] / maxVal) * plotH;
+      const cp = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      cp.setAttribute("cx", x); cp.setAttribute("cy", yp);
+      cp.setAttribute("r", "2"); cp.setAttribute("fill", priorColor);
+      svg.appendChild(cp);
 
-    // x-axis labels (every other week, rotated slightly)
-    values.forEach((v, i) => {
-      if (i % 2 !== 0 && i !== values.length - 1) return;
+      const yc = PAD_T + plotH - (cur[i] / maxVal) * plotH;
+      const cc = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      cc.setAttribute("cx", x); cc.setAttribute("cy", yc);
+      cc.setAttribute("r", "3"); cc.setAttribute("fill","#FFFFFF");
+      cc.setAttribute("stroke", tealColor); cc.setAttribute("stroke-width","2");
+      svg.appendChild(cc);
+    }
+
+    // X-axis: monthly tick labels at the first week whose start lies in each month
+    const monthTicks = [];
+    let lastMonth = "";
+    for (let i = 0; i < n; i++) {
+      const m = weeks[i].slice(0, 7);
+      if (m !== lastMonth) {
+        monthTicks.push(i);
+        lastMonth = m;
+      }
+    }
+    monthTicks.forEach(i => {
       const x = PAD_L + i * stepX;
-      const y = H - PAD_B + 18;
+      // small tick mark
+      const tick = document.createElementNS("http://www.w3.org/2000/svg","line");
+      tick.setAttribute("x1", x); tick.setAttribute("x2", x);
+      tick.setAttribute("y1", PAD_T + plotH);
+      tick.setAttribute("y2", PAD_T + plotH + 4);
+      tick.setAttribute("stroke", "#BFB7AB"); tick.setAttribute("stroke-width","1");
+      svg.appendChild(tick);
+
       const lbl = document.createElementNS("http://www.w3.org/2000/svg","text");
       lbl.setAttribute("x", x);
-      lbl.setAttribute("y", y);
+      lbl.setAttribute("y", PAD_T + plotH + 16);
       lbl.setAttribute("text-anchor","middle");
       lbl.setAttribute("font-size","10");
       lbl.setAttribute("fill","#8B7E72");
-      const parts = weeks[i].split("-");
-      lbl.textContent = parts[1] + "/" + parts[2];
+      lbl.textContent = fmtMonthDay(weeks[i]);
       svg.appendChild(lbl);
     });
 
@@ -1216,8 +1299,46 @@
     foot.setAttribute("y", H - 8);
     foot.setAttribute("font-size","10");
     foot.setAttribute("fill","#8B7E72");
-    foot.textContent = "Stage: " + STAGE_LABELS[state.trendStage] + ", unfiltered mailchimp.com baseline";
+    foot.textContent = "Stage: " + STAGE_LABELS[state.trendStage] + ", unfiltered mailchimp.com baseline. " + n + " ISO weeks.";
     svg.appendChild(foot);
+
+    // Hover hit-zones for tooltip (one rect per week column)
+    const tip = document.getElementById("trend-tooltip");
+    const wrap = svg.parentElement;
+    const halfStep = stepX / 2;
+    for (let i = 0; i < n; i++) {
+      const x = PAD_L + i * stepX;
+      const hit = document.createElementNS("http://www.w3.org/2000/svg","rect");
+      hit.setAttribute("x", Math.max(PAD_L, x - halfStep));
+      hit.setAttribute("y", PAD_T);
+      hit.setAttribute("width", Math.min(stepX, plotW));
+      hit.setAttribute("height", plotH);
+      hit.setAttribute("fill", "transparent");
+      hit.setAttribute("data-i", i);
+      hit.style.cursor = "crosshair";
+      svg.appendChild(hit);
+
+      // hover guideline + handlers
+      hit.addEventListener("mousemove", (evt) => {
+        const idx = parseInt(hit.getAttribute("data-i"), 10);
+        const cVal = cur[idx];
+        const pVal = pri[idx];
+        const yoy = yoyDelta(cVal, pVal);
+        tip.innerHTML = `
+          <div style="font-weight:700;margin-bottom:4px;">Week of ${weeks[idx]}</div>
+          <div class="t-row"><span>Current ${STAGE_LABELS[state.trendStage].toLowerCase()}</span><strong>${fullNum(cVal)}</strong></div>
+          <div class="t-row"><span>Prior year (wk ${weeksPrior[idx]})</span><span>${fullNum(pVal)}</span></div>
+          <div class="t-row"><span>YoY</span><span class="t-sub">${yoy.text}</span></div>
+        `;
+        const wrapRect = wrap.getBoundingClientRect();
+        const tx = evt.clientX - wrapRect.left + 14;
+        const ty = evt.clientY - wrapRect.top + 14;
+        tip.style.left = tx + "px";
+        tip.style.top = ty + "px";
+        tip.style.opacity = "1";
+      });
+      hit.addEventListener("mouseleave", () => { tip.style.opacity = "0"; });
+    }
   }
 
   // ----- Render: mini tables -----
