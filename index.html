@@ -390,42 +390,38 @@
     border-radius: var(--radius-md);
     padding: 14px 16px;
   }
+  .yoy-card .stage-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
   .yoy-card .stage-label {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--mc-pep-muted);
     font-weight: 700;
-    margin-bottom: 8px;
   }
-  .yoy-card .values {
-    display: flex; align-items: baseline; gap: 10px;
-    margin-bottom: 8px;
+  .yoy-bars {
+    display: flex; flex-direction: column; gap: 8px;
   }
-  .yoy-card .cur {
-    font-family: 'Cooper Light', 'Cooper Lt BT', 'Georgia', serif;
-    font-size: 24px;
-    color: var(--mc-pep);
-  }
-  .yoy-card .vs {
+  .yoy-bar-row {
+    display: grid;
+    grid-template-columns: 46px 1fr auto;
+    align-items: center;
+    gap: 10px;
     font-size: 12px;
     color: var(--mc-pep-muted);
   }
-  .yoy-card .pri { font-size: 13px; color: var(--mc-pep-muted); }
-  .yoy-bars {
-    display: flex; flex-direction: column; gap: 4px; margin-top: 8px;
-  }
-  .yoy-bar-row {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11px;
-    color: var(--mc-pep-muted);
-  }
-  .yoy-bar-row .name { width: 40px; flex-shrink: 0; font-weight: 600; }
+  .yoy-bar-row .name { font-weight: 600; }
   .yoy-bar-row .track {
-    flex: 1; height: 10px;
+    height: 10px;
     background: var(--mc-border-soft);
     border-radius: 999px;
     overflow: hidden;
+    min-width: 30px;
   }
   .yoy-bar-row .fill {
     height: 100%;
@@ -433,6 +429,14 @@
   }
   .yoy-bar-row.current .fill { background: var(--mc-teal); }
   .yoy-bar-row.prior .fill { background: var(--mc-prior); }
+  .yoy-bar-row .val {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--mc-pep);
+    min-width: 56px;
+    text-align: right;
+  }
+  .yoy-bar-row.prior .val { color: var(--mc-pep-muted); font-weight: 600; }
 
   /* =============== Trend chart =============== */
   .trend-tabs {
@@ -500,11 +504,48 @@
     font-weight: 700;
     border-bottom: 1px solid var(--mc-border);
     white-space: nowrap;
+    padding: 0;
   }
   table.mini td.num, table.mini th.num { text-align: right; font-variant-numeric: tabular-nums; }
   table.mini tr:last-child td { border-bottom: 0; }
   table.mini .name { font-weight: 500; }
   table.mini .rate { color: var(--mc-pep-muted); font-size: 12px; }
+
+  /* Sortable column headers */
+  table.mini th .sort-btn {
+    background: transparent;
+    border: 0;
+    padding: 9px 10px;
+    width: 100%;
+    text-align: inherit;
+    font: inherit;
+    color: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 4px;
+    user-select: none;
+  }
+  table.mini th.num .sort-btn { justify-content: flex-end; }
+  table.mini th .sort-btn:hover { background: var(--mc-off); color: var(--mc-pep); }
+  table.mini th[aria-sort="ascending"] .sort-btn,
+  table.mini th[aria-sort="descending"] .sort-btn {
+    color: var(--mc-pep);
+  }
+  table.mini th .sort-ind {
+    font-size: 10px;
+    line-height: 1;
+    width: 8px;
+    display: inline-block;
+    text-align: center;
+    color: var(--mc-pep-muted);
+  }
+  table.mini th[aria-sort="ascending"] .sort-ind,
+  table.mini th[aria-sort="descending"] .sort-ind { color: var(--mc-pep); }
 
   /* =============== Footer =============== */
   footer.site {
@@ -889,7 +930,7 @@
         <div class="panel-head">
           <div>
             <h2>Sequenced funnel</h2>
-            <div class="desc">Visits, Activations, Trial Starts, Paid &mdash; each stage shown vs prior-year underlay; conversion ratios use period totals.</div>
+            <div class="desc">Visits, Activations, Trial Starts, Paid: each stage shown vs prior-year underlay; conversion ratios use period totals.</div>
           </div>
           <div class="legend">
             <span><span class="legend-swatch" style="background:var(--mc-teal)"></span>Current period</span>
@@ -945,12 +986,12 @@
             <table class="mini" id="table-channels" aria-label="Top channels">
               <thead>
                 <tr>
-                  <th>Channel</th>
-                  <th class="num">Visits</th>
-                  <th class="num">Activations</th>
-                  <th class="num">Trials</th>
-                  <th class="num">Paid</th>
-                  <th class="num">Visit&rarr;Paid</th>
+                  <th role="columnheader" aria-sort="none"><button type="button" class="sort-btn" data-col="name" data-coltype="alpha">Channel <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="visits" data-coltype="num">Visits <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="activations" data-coltype="num">Activations <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="trials" data-coltype="num">Trials <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="descending" class="num"><button type="button" class="sort-btn" data-col="paid" data-coltype="num">Paid <span class="sort-ind" aria-hidden="true">&#x25BC;</span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="rate" data-coltype="num">Visit&rarr;Paid <span class="sort-ind" aria-hidden="true"></span></button></th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -961,12 +1002,12 @@
             <table class="mini" id="table-landing" aria-label="Top landing families">
               <thead>
                 <tr>
-                  <th>Landing family</th>
-                  <th class="num">Visits</th>
-                  <th class="num">Activations</th>
-                  <th class="num">Trials</th>
-                  <th class="num">Paid</th>
-                  <th class="num">Visit&rarr;Paid</th>
+                  <th role="columnheader" aria-sort="none"><button type="button" class="sort-btn" data-col="name" data-coltype="alpha">Landing family <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="visits" data-coltype="num">Visits <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="activations" data-coltype="num">Activations <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="trials" data-coltype="num">Trials <span class="sort-ind" aria-hidden="true"></span></button></th>
+                  <th role="columnheader" aria-sort="descending" class="num"><button type="button" class="sort-btn" data-col="paid" data-coltype="num">Paid <span class="sort-ind" aria-hidden="true">&#x25BC;</span></button></th>
+                  <th role="columnheader" aria-sort="none" class="num"><button type="button" class="sort-btn" data-col="rate" data-coltype="num">Visit&rarr;Paid <span class="sort-ind" aria-hidden="true"></span></button></th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -980,9 +1021,9 @@
 </div>
 
 <footer class="site">
-  Sources: <code>google_analytics.fct_ga4_visitor_session_events_daily</code> (Visits, Activations); <code>bi_aggregate.free_trials_weekly</code> (Trial Starts); <code>bi_aggregate.bookings_weekly</code> (Paid). Mailchimp.com hostname; non-customer sessions only.
+  Sources: <code>google_analytics.fct_ga4_visitor_session_events_daily</code> (Visits, Activations); <code>bi_aggregate.free_trials_weekly</code> (Trial Starts); <code>bi_aggregate.bookings_weekly</code> (Paid). Visits = sessions on hostname=mailchimp.com whose first event with a non-null page_path lands on the FY26 Scaled Acquisition page set (homepage / pricing / solutions / signup / sales / contact / overview / templates / switch-to / paid landing pages).
   Trial Starts and Paid are weekly BI aggregates distributed across landing-family / channel / device / new-returning slices proportional to that slice's GA Visits share within the same period and country.
-  Calibration vs FY26 Web Scorecard (US, FY26 fw 1-13): Visits &minus;6.2%, Activations &minus;6.8%, Paid +0.2% within tolerance; Trial Starts &minus;24.6% (BI <code>free_trial_users</code> excludes immediate-to-paid bypassers that the Tableau scorecard appears to roll into trial starts).
+  Calibration vs FY26 Web Scorecard (US, FY26 fw 1-13 = Aug 3 to Oct 19 2025): Activations &minus;6.8%, Paid +0.2% within tolerance; Visits +51.7% (the prior any_uid=0 filter is no longer accurate now that GA4 persists user_id across sessions for any device that ever authenticated, inflating measured Visits relative to deck snapshot); Trial Starts &minus;24.6% (BI <code>free_trial_users</code> excludes immediate-to-paid bypassers that the Tableau scorecard appears to roll into trial starts).
 </footer>
 
 </section>
@@ -1247,7 +1288,7 @@
     "Email Marketing solution", "SMS Marketing solution", "Marketing Automation solution",
     "Other Solutions", "Other Feature pages", "SEO Resources",
     "Knowledge Base / Help", "Integrations", "Switch-to / Compete",
-    "Direct to Signup", "Other"
+    "Paid Landing Pages", "Direct to Signup", "Other"
   ];
   const CHANNELS = [
     "Direct", "Paid Search", "Paid Social", "Organic Search",
@@ -1276,12 +1317,19 @@
   let COUNTRIES = [];
 
   // ----- Helpers -----
+  // Strip trailing zeros AFTER a decimal point only. Critical for round
+  // numbers: prior logic /\.?0+$/ ate the trailing 0 of "10" -> "1" which
+  // turned humanize(10000) into "1K" and humanize(50000) into "5K".
+  function trimZero(s) {
+    if (s.indexOf(".") === -1) return s;
+    return s.replace(/0+$/, "").replace(/\.$/, "");
+  }
   function humanize(n) {
     if (n === null || n === undefined || Number.isNaN(n)) return "--";
     const abs = Math.abs(n);
-    if (abs >= 1e9) return (n / 1e9).toFixed(abs >= 1e10 ? 1 : 2).replace(/\.?0+$/,"") + "B";
-    if (abs >= 1e6) return (n / 1e6).toFixed(abs >= 1e7 ? 1 : 2).replace(/\.?0+$/,"") + "M";
-    if (abs >= 1e3) return (n / 1e3).toFixed(abs >= 1e4 ? 0 : 1).replace(/\.?0+$/,"") + "K";
+    if (abs >= 1e9) return trimZero((n / 1e9).toFixed(abs >= 1e10 ? 1 : 2)) + "B";
+    if (abs >= 1e6) return trimZero((n / 1e6).toFixed(abs >= 1e7 ? 1 : 2)) + "M";
+    if (abs >= 1e3) return trimZero((n / 1e3).toFixed(abs >= 1e4 ? 0 : 1)) + "K";
     return String(Math.round(n));
   }
   function fullNum(n) {
@@ -1714,27 +1762,38 @@
   }
 
   // ----- Render: YoY panel -----
+  // Each of the 4 stage panels shows: stage label, YoY delta with arrow, then
+  // a Now/Prior bar pair where each bar carries its absolute numeric value to
+  // the right. Values are normalized per-stage so the small Trial Starts and
+  // Paid bars stay visible alongside the much larger Visits / Activations.
   function renderYoy(cur, pri) {
     const grid = document.getElementById("yoy-grid");
     grid.innerHTML = "";
-    // Each stage normalized to its own max so trials/paid bars are visible.
     STAGES.forEach((s, idx) => {
-      const d = yoyDelta(cur[s], pri[s]);
-      const localMax = Math.max(cur[s] || 1, pri[s] || 1);
-      const curPct = (cur[s] / localMax) * 100;
-      const priPct = (pri[s] / localMax) * 100;
+      const curVal = Number(cur && cur[s]) || 0;
+      const priVal = Number(pri && pri[s]) || 0;
+      const d = yoyDelta(curVal, priVal);
+      const localMax = Math.max(curVal, priVal, 1);
+      const curPct = (curVal / localMax) * 100;
+      const priPct = (priVal / localMax) * 100;
       const card = document.createElement("div");
       card.className = "yoy-card";
       card.innerHTML = `
-        <div class="stage-label">${idx+1}. ${STAGE_LABELS[s]}</div>
-        <div class="values">
-          <span class="cur">${humanize(cur[s])}</span>
-          <span class="vs">vs <strong>${humanize(pri[s])}</strong></span>
-          <span class="delta ${d.cls}" style="margin-left:auto;">${d.text}</span>
+        <div class="stage-head">
+          <span class="stage-label">${idx+1}. ${STAGE_LABELS[s]}</span>
+          <span class="delta ${d.cls}">${d.text}</span>
         </div>
         <div class="yoy-bars">
-          <div class="yoy-bar-row current"><span class="name">Now</span><span class="track"><span class="fill" style="width:${curPct.toFixed(2)}%"></span></span></div>
-          <div class="yoy-bar-row prior"><span class="name">Prior</span><span class="track"><span class="fill" style="width:${priPct.toFixed(2)}%"></span></span></div>
+          <div class="yoy-bar-row current">
+            <span class="name">Now</span>
+            <span class="track"><span class="fill" style="width:${curPct.toFixed(2)}%"></span></span>
+            <span class="val">${humanize(curVal)}</span>
+          </div>
+          <div class="yoy-bar-row prior">
+            <span class="name">Prior</span>
+            <span class="track"><span class="fill" style="width:${priPct.toFixed(2)}%"></span></span>
+            <span class="val">${humanize(priVal)}</span>
+          </div>
         </div>
       `;
       grid.appendChild(card);
@@ -1944,14 +2003,75 @@
   }
 
   // ----- Render: mini tables -----
+  // Sort state per table. Defaults to descending by Paid; reset on every
+  // render() call so a filter change snaps the table back to the default.
+  // (Also matches the spec "Sort state should not persist across filter
+  // changes -- acceptable to reset to default".)
+  const TABLE_SORT_DEFAULT = { col: "paid", dir: "desc" };
+  const tableSort = {
+    "table-channels": Object.assign({}, TABLE_SORT_DEFAULT),
+    "table-landing":  Object.assign({}, TABLE_SORT_DEFAULT)
+  };
+  // Rows captured at render time so sort clicks can re-sort without rebuilding
+  // the underlying aggregation. Cleared on render().
+  const tableRows = { "table-channels": [], "table-landing": [] };
+
+  function rateOf(r) {
+    return r.visits ? (r.paid / r.visits) : 0;
+  }
+  function sortTableRows(rows, col, dir) {
+    const sorted = rows.slice();
+    sorted.sort((a, b) => {
+      let av, bv, cmp;
+      if (col === "name") {
+        av = String(a.name || "");
+        bv = String(b.name || "");
+        cmp = av.localeCompare(bv, "en", { sensitivity: "base" });
+      } else if (col === "rate") {
+        cmp = rateOf(a) - rateOf(b);
+      } else {
+        cmp = (Number(a[col]) || 0) - (Number(b[col]) || 0);
+      }
+      // Stable secondary sort on paid desc to keep ties deterministic.
+      if (cmp === 0) cmp = (Number(b.paid) || 0) - (Number(a.paid) || 0);
+      return dir === "asc" ? cmp : -cmp;
+    });
+    return sorted;
+  }
+
+  function applySortIndicators(tableId) {
+    const state = tableSort[tableId];
+    const ths = document.querySelectorAll("#" + tableId + " thead th[role='columnheader']");
+    ths.forEach(th => {
+      const btn = th.querySelector(".sort-btn");
+      if (!btn) return;
+      const col = btn.getAttribute("data-col");
+      const ind = btn.querySelector(".sort-ind");
+      if (col === state.col) {
+        const ariaVal = state.dir === "asc" ? "ascending" : "descending";
+        th.setAttribute("aria-sort", ariaVal);
+        if (ind) ind.innerHTML = state.dir === "asc" ? "&#x25B2;" : "&#x25BC;";
+      } else {
+        th.setAttribute("aria-sort", "none");
+        if (ind) ind.textContent = "";
+      }
+    });
+  }
+
   function renderTables(curPeriod) {
     const channels = aggregateBy(curPeriod, "channel", 10);
     const landings = aggregateBy(curPeriod, "landing_family", 10);
-    fillTable("table-channels", channels);
-    fillTable("table-landing", landings);
+    tableRows["table-channels"] = channels;
+    tableRows["table-landing"]  = landings;
+    fillTable("table-channels");
+    fillTable("table-landing");
   }
-  function fillTable(id, rows) {
+  function fillTable(id) {
     const tbody = document.querySelector("#" + id + " tbody");
+    if (!tbody) return;
+    const state = tableSort[id];
+    const rows = sortTableRows(tableRows[id] || [], state.col, state.dir);
+    applySortIndicators(id);
     tbody.innerHTML = "";
     if (!rows.length) {
       const tr = document.createElement("tr");
@@ -1977,6 +2097,36 @@
     return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
   }
 
+  // Wire up sort headers. Clicking a header toggles asc/desc on its column,
+  // or switches to that column with a sensible default direction (alpha cols
+  // default ascending, numeric cols default descending). Keyboard activation
+  // (Enter / Space) is delivered by the native <button> click event.
+  function initTableSort() {
+    ["table-channels", "table-landing"].forEach(tableId => {
+      const ths = document.querySelectorAll("#" + tableId + " thead th[role='columnheader']");
+      ths.forEach(th => {
+        const btn = th.querySelector(".sort-btn");
+        if (!btn) return;
+        btn.addEventListener("click", () => {
+          const col = btn.getAttribute("data-col");
+          const colType = btn.getAttribute("data-coltype");
+          const state = tableSort[tableId];
+          if (state.col === col) {
+            state.dir = state.dir === "asc" ? "desc" : "asc";
+          } else {
+            state.col = col;
+            state.dir = colType === "alpha" ? "asc" : "desc";
+          }
+          fillTable(tableId);
+        });
+      });
+    });
+  }
+  function resetTableSort() {
+    tableSort["table-channels"] = Object.assign({}, TABLE_SORT_DEFAULT);
+    tableSort["table-landing"]  = Object.assign({}, TABLE_SORT_DEFAULT);
+  }
+
   // ----- Filter count -----
   function renderRowCount(curTotals) {
     const el = document.getElementById("row-count");
@@ -1990,6 +2140,8 @@
     const priP = periodKey("prior");
     const cur = aggregate(curP);
     const pri = aggregate(priP);
+    // Filter changes invalidate the user's table sort selection per spec.
+    resetTableSort();
     renderKpis(cur, pri);
     renderFunnel(cur, pri);
     renderYoy(cur, pri);
@@ -2023,6 +2175,7 @@
     });
 
     initFilters();
+    initTableSort();
     renderTrend();
     render();
 

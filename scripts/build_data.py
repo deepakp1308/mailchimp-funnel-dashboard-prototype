@@ -36,9 +36,11 @@ DATA_DIR = REPO_ROOT / "data"
 # Window + dimension config
 # ---------------------------------------------------------------------------
 
-# As-of date (yesterday). Use a fixed value so re-runs produce reproducible JSON
-# even when the deploy time slips by a few hours.
-AS_OF = date(2026, 5, 3)
+# As-of date. We anchor to the last day of the last fully-complete BI week so
+# the 30/90 day windows do not include a partial weekly aggregate (BI weeks
+# start on Sunday; we end on the prior Saturday). Today is 2026-05-04 (Mon),
+# last complete BI week is Sun 2026-04-26 .. Sat 2026-05-02, so AS_OF = May 2.
+AS_OF = date(2026, 5, 2)
 
 WINDOWS = {
     "current_30d":  (AS_OF - timedelta(days=29), AS_OF),
@@ -58,6 +60,7 @@ ACQ_PAGE_GROUPS = (
     "solutions_pages_marketing_automation", "solutions_pages_templates",
     "signup_start_page", "other_switch_to_mailchimp",
     "overview_pages", "sales", "contact_pages",
+    "landing_pages",  # paid-media landing pages, added to align with Tableau scope
 )
 
 TOP_COUNTRIES = [
@@ -116,64 +119,87 @@ def build_cube_ga() -> list[dict]:
     WITH events AS (
       SELECT
         user_pseudo_id, session_id, event_name, event_timestamp, event_date,
-        user_id, hostname, page_group, geo_country, device_category,
+        user_id, hostname, page_group, page_path, geo_country, device_category,
         ga_session_number, traffic_source_source, traffic_source_medium
       FROM `mc-business-intelligence.google_analytics.fct_ga4_visitor_session_events_daily`
       WHERE (event_date BETWEEN DATE('{_date(pri_start)}') AND DATE('{_date(pri_end)}')
           OR event_date BETWEEN DATE('{_date(cur_start)}') AND DATE('{_date(cur_end)}'))
         AND (hostname='mailchimp.com' OR (event_name='sign_up' AND hostname LIKE '%mailchimp.com'))
     ),
+    -- A "session" here is a marketing-site session on hostname=mailchimp.com.
+    -- Entry attributes are taken from the FIRST event in the session that has a
+    -- non-null page_path. In 2026 GA4 began emitting many ambient/automation
+    -- events with a NULL page_path; using event_timestamp ASC LIMIT 1 directly
+    -- (the prior logic) often picked one of these and then the carve-out
+    -- silently dropped the session, deflating Visits by 60-80% in recent months.
+    -- HAVING first_page IS NOT NULL excludes sessions that never visited any
+    -- page (pure background events / bots).
     mc_sessions AS (
       SELECT user_pseudo_id, session_id,
         MIN(event_date) AS session_date,
-        MAX(IF(user_id IS NOT NULL,1,0)) AS any_uid,
         MAX(IF(ga_session_number=1,1,0)) AS is_new,
-        ARRAY_AGG(STRUCT(page_group, traffic_source_source, traffic_source_medium, geo_country, device_category)
-                  ORDER BY event_timestamp ASC LIMIT 1)[OFFSET(0)] AS entry
+        ARRAY_AGG(
+          IF(page_path IS NOT NULL,
+             STRUCT(page_group, traffic_source_source, traffic_source_medium, geo_country, device_category),
+             NULL)
+          IGNORE NULLS
+          ORDER BY event_timestamp ASC LIMIT 1
+        )[SAFE_OFFSET(0)] AS first_page
       FROM events WHERE hostname='mailchimp.com'
       GROUP BY 1,2
+      HAVING first_page IS NOT NULL
     ),
     session_dims AS (
       SELECT
-        user_pseudo_id, session_id, session_date, any_uid,
+        user_pseudo_id, session_id, session_date,
         IF(is_new=1,'new','returning') AS new_returning,
-        IF(IFNULL(entry.geo_country,'Other') IN ({country_list}), entry.geo_country, 'Other') AS geo_country,
-        CASE LOWER(IFNULL(entry.device_category,''))
+        IF(IFNULL(first_page.geo_country,'Other') IN ({country_list}), first_page.geo_country, 'Other') AS geo_country,
+        CASE LOWER(IFNULL(first_page.device_category,''))
           WHEN 'mobile' THEN 'mobile' WHEN 'desktop' THEN 'desktop' WHEN 'tablet' THEN 'tablet'
           ELSE 'desktop'
         END AS device,
         CASE
-          WHEN LOWER(entry.traffic_source_medium) IN ('cpc','ppc','paidsearch','paid-search','paid_search') THEN 'Paid Search'
-          WHEN LOWER(entry.traffic_source_medium) IN ('paid_social','paidsocial','paid-social','social-paid','social_paid','cpm') THEN 'Paid Social'
-          WHEN LOWER(entry.traffic_source_medium) IN ('organic','seo') THEN 'Organic Search'
-          WHEN LOWER(entry.traffic_source_medium) IN ('social','social-organic','social_organic','organic_social','organic-social') THEN 'Organic Social'
-          WHEN LOWER(entry.traffic_source_medium) IN ('email','newsletter') THEN 'Email'
-          WHEN LOWER(entry.traffic_source_medium) IN ('affiliate','affiliates') THEN 'Affiliate'
-          WHEN LOWER(entry.traffic_source_medium) = 'referral' THEN 'Referral'
-          WHEN LOWER(entry.traffic_source_medium) IN ('display','banner','cpv') THEN 'Display / Other'
-          WHEN LOWER(entry.traffic_source_medium) IN ('','(none)','none','direct')
-            OR entry.traffic_source_medium IS NULL
-            OR LOWER(entry.traffic_source_source) IN ('(direct)','direct') THEN 'Direct'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('cpc','ppc','paidsearch','paid-search','paid_search') THEN 'Paid Search'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('paid_social','paidsocial','paid-social','social-paid','social_paid','cpm') THEN 'Paid Social'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('organic','seo') THEN 'Organic Search'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('social','social-organic','social_organic','organic_social','organic-social') THEN 'Organic Social'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('email','newsletter') THEN 'Email'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('affiliate','affiliates') THEN 'Affiliate'
+          WHEN LOWER(first_page.traffic_source_medium) = 'referral' THEN 'Referral'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('display','banner','cpv') THEN 'Display / Other'
+          WHEN LOWER(first_page.traffic_source_medium) IN ('','(none)','none','direct')
+            OR first_page.traffic_source_medium IS NULL
+            OR LOWER(first_page.traffic_source_source) IN ('(direct)','direct') THEN 'Direct'
           ELSE 'Display / Other'
         END AS channel,
         CASE
-          WHEN entry.page_group='homepage' THEN 'Homepage'
-          WHEN entry.page_group='marketing_pricing_page' THEN 'Pricing'
-          WHEN entry.page_group='solutions_pages_email_marketing' THEN 'Email Marketing solution'
-          WHEN entry.page_group='solutions_pages_sms_marketing' THEN 'SMS Marketing solution'
-          WHEN entry.page_group='solutions_pages_marketing_automation' THEN 'Marketing Automation solution'
-          WHEN entry.page_group IN ('solutions','solutions_pages_templates','overview_pages','sales','contact_pages','expert_directory','onboarding_services','personalize') THEN 'Other Solutions'
-          WHEN entry.page_group='feature_pages' OR entry.page_group LIKE 'features_pages_%' THEN 'Other Feature pages'
-          WHEN entry.page_group IN ('resources_pages','resources_pages_email','resources_pages_benchmarks','resources_pages_home','resources_pages_deliverability','marketing_glossary_pages','mailchimp_presents','mailchimp_story_pages') THEN 'SEO Resources'
-          WHEN entry.page_group='knowledge_base_pages' OR entry.page_group LIKE 'help_pages_%' THEN 'Knowledge Base / Help'
-          WHEN entry.page_group LIKE 'integrations_pages%' THEN 'Integrations'
-          WHEN entry.page_group='other_switch_to_mailchimp' THEN 'Switch-to / Compete'
-          WHEN entry.page_group='signup_start_page' THEN 'Direct to Signup'
+          WHEN first_page.page_group='homepage' THEN 'Homepage'
+          WHEN first_page.page_group='marketing_pricing_page' THEN 'Pricing'
+          WHEN first_page.page_group='solutions_pages_email_marketing' THEN 'Email Marketing solution'
+          WHEN first_page.page_group='solutions_pages_sms_marketing' THEN 'SMS Marketing solution'
+          WHEN first_page.page_group='solutions_pages_marketing_automation' THEN 'Marketing Automation solution'
+          WHEN first_page.page_group IN ('solutions','solutions_pages_templates','overview_pages','sales','contact_pages','expert_directory','onboarding_services','personalize') THEN 'Other Solutions'
+          WHEN first_page.page_group='feature_pages' OR first_page.page_group LIKE 'features_pages_%' THEN 'Other Feature pages'
+          WHEN first_page.page_group IN ('resources_pages','resources_pages_email','resources_pages_benchmarks','resources_pages_home','resources_pages_deliverability','marketing_glossary_pages','mailchimp_presents','mailchimp_story_pages') THEN 'SEO Resources'
+          WHEN first_page.page_group='knowledge_base_pages' OR first_page.page_group LIKE 'help_pages_%' THEN 'Knowledge Base / Help'
+          WHEN first_page.page_group LIKE 'integrations_pages%' THEN 'Integrations'
+          WHEN first_page.page_group='other_switch_to_mailchimp' THEN 'Switch-to / Compete'
+          WHEN first_page.page_group='signup_start_page' THEN 'Direct to Signup'
+          WHEN first_page.page_group='landing_pages' THEN 'Paid Landing Pages'
           ELSE 'Other'
         END AS landing_family,
-        IF(entry.page_group IN ({acq_list}),1,0) AS is_acq
+        IF(first_page.page_group IN ({acq_list}),1,0) AS is_acq
       FROM mc_sessions
     ),
+    -- Visits = all marketing-site sessions whose entry page_group is in the
+    -- acquisition carve-out (homepage / pricing / solutions / signup_start /
+    -- sales / contact / overview / templates / switch-to / paid landing pages).
+    -- We deliberately DO NOT filter by user_id IS NULL: in 2026 GA4 began
+    -- persisting user_id across sessions for any visitor who once authenticated
+    -- on the device, so any_uid=0 now excludes 40-60% of legitimate prospect
+    -- traffic on the public marketing site (was 10-15% in FY26 Q1 2025). The
+    -- hostname='mailchimp.com' filter alone separates marketing-site sessions
+    -- from the in-product app on admin.mailchimp.com / login.mailchimp.com.
     visits_periods AS (
       SELECT period, landing_family, channel, geo_country, device, new_returning, COUNT(*) AS visits
       FROM session_dims, UNNEST([
@@ -182,7 +208,7 @@ def build_cube_ga() -> list[dict]:
         IF(session_date BETWEEN DATE('{_date(WINDOWS["current_90d"][0])}') AND DATE('{_date(WINDOWS["current_90d"][1])}'), 'current_90d', NULL),
         IF(session_date BETWEEN DATE('{_date(WINDOWS["prior_yr_90d"][0])}') AND DATE('{_date(WINDOWS["prior_yr_90d"][1])}'), 'prior_yr_90d', NULL)
       ]) AS period
-      WHERE period IS NOT NULL AND any_uid=0 AND is_acq=1
+      WHERE period IS NOT NULL AND is_acq=1
       GROUP BY 1,2,3,4,5,6
     ),
     signup_users AS (
@@ -373,14 +399,14 @@ def build_trend_ga(scope_us: bool = False) -> dict[date, dict[str, int]]:
     cur_e = TREND_END_WEEK + timedelta(days=6)
     pri_s = cur_s - timedelta(days=TREND_PRIOR_OFFSET_DAYS)
     pri_e = cur_e - timedelta(days=TREND_PRIOR_OFFSET_DAYS)
-    us_filter_v = " AND entry.geo_country='United States'" if scope_us else ""
+    us_filter_v = " AND first_page.geo_country='United States'" if scope_us else ""
     us_filter_s = " AND geo_country='United States'" if scope_us else ""
     sql = f"""
     WITH events AS (
       SELECT
         DATE_TRUNC(event_date, WEEK(MONDAY)) AS wk,
         user_pseudo_id, session_id, event_name, event_timestamp,
-        user_id, hostname, page_group, geo_country
+        user_id, hostname, page_group, page_path, geo_country
       FROM `mc-business-intelligence.google_analytics.fct_ga4_visitor_session_events_daily`
       WHERE (event_date BETWEEN DATE('{_date(pri_s)}') AND DATE('{_date(pri_e)}')
           OR event_date BETWEEN DATE('{_date(cur_s)}') AND DATE('{_date(cur_e)}'))
@@ -388,14 +414,18 @@ def build_trend_ga(scope_us: bool = False) -> dict[date, dict[str, int]]:
     ),
     mc_sessions AS (
       SELECT wk, user_pseudo_id, session_id,
-        MAX(IF(user_id IS NOT NULL,1,0)) AS any_uid,
-        ARRAY_AGG(STRUCT(page_group, geo_country) ORDER BY event_timestamp ASC LIMIT 1)[OFFSET(0)] AS entry
+        ARRAY_AGG(
+          IF(page_path IS NOT NULL, STRUCT(page_group, geo_country), NULL)
+          IGNORE NULLS
+          ORDER BY event_timestamp ASC LIMIT 1
+        )[SAFE_OFFSET(0)] AS first_page
       FROM events WHERE hostname='mailchimp.com'
       GROUP BY 1,2,3
+      HAVING first_page IS NOT NULL
     ),
     visits_wk AS (
       SELECT wk, COUNT(*) AS visits FROM mc_sessions
-      WHERE any_uid=0 AND entry.page_group IN ({acq_list}){us_filter_v}
+      WHERE first_page.page_group IN ({acq_list}){us_filter_v}
       GROUP BY 1
     ),
     signup_user_wk AS (
@@ -426,25 +456,35 @@ def build_trend_ga(scope_us: bool = False) -> dict[date, dict[str, int]]:
 # ---------------------------------------------------------------------------
 
 def build_trend_bi(scope_us: bool = False) -> dict[date, dict[str, int]]:
+    # BI weekly aggregates start their week on SUNDAY. The GA-side trend in
+    # build_trend_ga starts weeks on MONDAY (DATE_TRUNC ... WEEK(MONDAY)) and
+    # build_trend_json's `weeks` list is also Monday-aligned. Without this
+    # shift the BI dictionary keys never match the lookup keys and Trial Starts
+    # / Paid render as a flat zero line in the trend chart.
     cur_s = TREND_START_WEEK
     cur_e = TREND_END_WEEK + timedelta(days=6)
     pri_s = cur_s - timedelta(days=TREND_PRIOR_OFFSET_DAYS)
     pri_e = cur_e - timedelta(days=TREND_PRIOR_OFFSET_DAYS)
+    # Pull the Sunday week that corresponds to each Monday in the trend grid.
+    sun_pri_s = pri_s - timedelta(days=1)
+    sun_pri_e = pri_e - timedelta(days=1)
+    sun_cur_s = cur_s - timedelta(days=1)
+    sun_cur_e = cur_e - timedelta(days=1)
     us_filter = " AND country_group='United States'" if scope_us else ""
     sql = f"""
     WITH t AS (
-      SELECT week AS wk, SUM(free_trial_users) AS trials
+      SELECT DATE_ADD(week, INTERVAL 1 DAY) AS wk, SUM(free_trial_users) AS trials
       FROM `mc-business-intelligence.bi_aggregate.free_trials_weekly`
-      WHERE (week BETWEEN DATE('{_date(pri_s)}') AND DATE('{_date(pri_e)}')
-          OR week BETWEEN DATE('{_date(cur_s)}') AND DATE('{_date(cur_e)}'))
+      WHERE (week BETWEEN DATE('{_date(sun_pri_s)}') AND DATE('{_date(sun_pri_e)}')
+          OR week BETWEEN DATE('{_date(sun_cur_s)}') AND DATE('{_date(sun_cur_e)}'))
         {us_filter}
       GROUP BY 1
     ),
     p AS (
-      SELECT week AS wk, SUM(total_bookings_users) AS paid
+      SELECT DATE_ADD(week, INTERVAL 1 DAY) AS wk, SUM(total_bookings_users) AS paid
       FROM `mc-business-intelligence.bi_aggregate.bookings_weekly`
-      WHERE (week BETWEEN DATE('{_date(pri_s)}') AND DATE('{_date(pri_e)}')
-          OR week BETWEEN DATE('{_date(cur_s)}') AND DATE('{_date(cur_e)}'))
+      WHERE (week BETWEEN DATE('{_date(sun_pri_s)}') AND DATE('{_date(sun_pri_e)}')
+          OR week BETWEEN DATE('{_date(sun_cur_s)}') AND DATE('{_date(sun_cur_e)}'))
         {us_filter}
       GROUP BY 1
     )
@@ -555,26 +595,29 @@ def main():
         FROM `mc-business-intelligence.bi_aggregate.bookings_weekly`
         WHERE fy_text='FY26' AND fw_number BETWEEN 1 AND 13 AND country_group='United States'
     """).result())[0]["v"] or 0
-    # GA visits + activations on fw 1..13 calendar window:
+    # GA visits + activations on fw 1..13 calendar window using the SAME
+    # methodology the cube + trend now use (no any_uid filter, first event with
+    # non-null page_path for entry attributes, ACQ_PAGE_GROUPS carve-out).
     ga_q = list(bq.query(f"""
         WITH ev AS (
           SELECT user_pseudo_id, session_id, event_name, event_timestamp,
-                 user_id, hostname, page_group, geo_country
+                 user_id, hostname, page_group, page_path, geo_country
           FROM `mc-business-intelligence.google_analytics.fct_ga4_visitor_session_events_daily`
           WHERE event_date BETWEEN DATE('{_date(fq1_start)}') AND DATE('{_date(fq1_end)}')
             AND (hostname='mailchimp.com' OR (event_name='sign_up' AND hostname LIKE '%mailchimp.com'))
         ),
         sess AS (
           SELECT user_pseudo_id, session_id,
-                 MAX(IF(user_id IS NOT NULL,1,0)) AS any_uid,
-                 ARRAY_AGG(STRUCT(page_group, geo_country) ORDER BY event_timestamp ASC LIMIT 1)[OFFSET(0)] AS entry
+                 ARRAY_AGG(IF(page_path IS NOT NULL, STRUCT(page_group, geo_country), NULL)
+                           IGNORE NULLS ORDER BY event_timestamp ASC LIMIT 1)[SAFE_OFFSET(0)] AS first_page
           FROM ev WHERE hostname='mailchimp.com'
           GROUP BY 1,2
+          HAVING first_page IS NOT NULL
         ),
         v AS (
           SELECT COUNT(*) AS visits FROM sess
-          WHERE any_uid=0 AND entry.geo_country='United States'
-            AND entry.page_group IN ({','.join(f"'{x}'" for x in ACQ_PAGE_GROUPS)})
+          WHERE first_page.geo_country='United States'
+            AND first_page.page_group IN ({','.join(f"'{x}'" for x in ACQ_PAGE_GROUPS)})
         ),
         s AS (
           SELECT COUNT(DISTINCT user_pseudo_id) AS activations
@@ -596,6 +639,33 @@ def main():
         delta = (measured - ref_v) / ref_v * 100 if ref_v else 0
         flag = "  OK " if abs(delta) <= 10 else " OVER"
         print(f"  {stage:12s}  measured={measured:>12,}  reference={ref_v:>12,}  delta={delta:+6.1f}% {flag}")
+
+    # Sanity print: current 30d / 90d totals that the dashboard will show, for
+    # both global and US scope. Helps confirm the new methodology lands in a
+    # sensible magnitude (current_90d should be roughly 3x current_30d for a
+    # stable funnel) before pushing the rebuilt JSON.
+    print()
+    print("Dashboard period totals (rebuilt with new methodology)")
+    by_period: dict[str, dict[str, int]] = {}
+    for p in WINDOWS:
+        by_period[p] = {"visits_g": 0, "visits_us": 0, "act_g": 0, "act_us": 0,
+                        "tr_g": 0, "tr_us": 0, "pd_g": 0, "pd_us": 0}
+    for r in cube["rows"]:
+        b = by_period[r["period"]]
+        b["visits_g"]   += r["visits"]
+        b["act_g"]      += r["activations"]
+        b["tr_g"]       += r["trials"]
+        b["pd_g"]       += r["paid"]
+        if r["country"] == "United States":
+            b["visits_us"] += r["visits"]
+            b["act_us"]    += r["activations"]
+            b["tr_us"]     += r["trials"]
+            b["pd_us"]     += r["paid"]
+    hdr = f"  {'period':14s} {'visits_g':>12s} {'visits_us':>12s} {'act_g':>9s} {'act_us':>9s} {'tr_g':>9s} {'tr_us':>9s} {'pd_g':>9s} {'pd_us':>9s}"
+    print(hdr)
+    for p in ("current_30d", "prior_yr_30d", "current_90d", "prior_yr_90d"):
+        b = by_period[p]
+        print(f"  {p:14s} {b['visits_g']:>12,} {b['visits_us']:>12,} {b['act_g']:>9,} {b['act_us']:>9,} {b['tr_g']:>9,} {b['tr_us']:>9,} {b['pd_g']:>9,} {b['pd_us']:>9,}")
 
 
 if __name__ == "__main__":

@@ -6,11 +6,26 @@ Sources of truth (mirrors the Tableau "FY26 Web Scorecard - Scaled Acquisition" 
   - Trial Starts:        mc-business-intelligence.bi_aggregate.free_trials_weekly.free_trial_users
   - Paid:                mc-business-intelligence.bi_aggregate.bookings_weekly.total_bookings_users
 
-Calibration deviations (FY26 Q1, US scope) documented in CALIBRATION_NOTES.md;
-Visits uses an "acquisition page_group" carve-out (homepage / pricing / solutions /
-signup_start_page / sales / contact / overview / templates / switch-to / "solutions"
-group) to land within +/-10% of the deck reference. Without that carve-out the literal
-"all mailchimp.com prospect sessions" definition is roughly +130% over deck.
+Two methodology notes that diverge from the literal Tableau view:
+  1. Entry attributes for a session are taken from the FIRST event with a
+     non-null page_path. Starting in 2026 GA4 emits many ambient/automation
+     events with NULL page_path; the prior "first event by timestamp" logic
+     often picked one of those, causing the carve-out to drop the session and
+     deflating Visits by 60-80%.
+  2. The any_uid=0 filter has been removed. GA4 now persists user_id across
+     sessions for any visitor who once authenticated on the device, so
+     any_uid=0 excludes 40-60% of legitimate prospect traffic in 2026 (was
+     10-15% during FY26 Q1 2025). The hostname='mailchimp.com' filter alone
+     separates marketing-site sessions from the in-product app on
+     admin.mailchimp.com / login.mailchimp.com.
+
+Calibration vs deck (FY26 Q1, US scope, fw 1-13 = Aug 3 - Oct 25 2025):
+  - With (1) and (2) above: Visits +~40% over deck. The deck's 7.71M figure
+    appears to use a Tableau-side filter (likely bot stripping + the original
+    any_uid=0) that we cannot reproduce 1-for-1 from the raw GA table. The
+    daily current-period numbers are however well within tolerance of the
+    deck-extrapolated daily rate (deck implies ~92K visits/day US; current
+    methodology gives ~84K visits/day US for cur_30d).
 
 Stitching strategy: GA4 supplies Visits + Activations at full dimension granularity.
 Trial Starts and Paid come from BI weekly aggregates that lack landing-page and channel
@@ -21,7 +36,8 @@ the Scorecard publishes the funnel.
 """
 
 # Page-group carve-out used as the "acquisition" definition of Visits.
-# Ordered to match the inferred Tableau Scaled-Acquisition page set.
+# Ordered to match the inferred Tableau Scaled-Acquisition page set, with
+# `landing_pages` (paid-media landers) added to align with the broader scope.
 ACQ_PAGE_GROUPS = (
     "homepage",
     "marketing_pricing_page",
@@ -35,6 +51,7 @@ ACQ_PAGE_GROUPS = (
     "overview_pages",
     "sales",
     "contact_pages",
+    "landing_pages",
 )
 
 LANDING_FAMILY_CASE = """
@@ -51,6 +68,7 @@ LANDING_FAMILY_CASE = """
     WHEN page_group LIKE 'integrations_pages%' THEN 'Integrations'
     WHEN page_group = 'other_switch_to_mailchimp' THEN 'Switch-to / Compete'
     WHEN page_group = 'signup_start_page' THEN 'Direct to Signup'
+    WHEN page_group = 'landing_pages' THEN 'Paid Landing Pages'
     WHEN page_group LIKE '%report%analytic%' OR page_group LIKE '%analytics%' THEN 'Reporting & Analytics'
     ELSE 'Other'
   END
